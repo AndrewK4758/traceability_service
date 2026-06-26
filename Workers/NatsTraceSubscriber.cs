@@ -44,19 +44,30 @@ public class NatsTraceSubscriber : BackgroundService
                     using var doc = JsonDocument.Parse(traceJson);
                     var root = doc.RootElement;
                     
+                    var eventTypeStr = root.TryGetProperty("event_type", out var et) ? et.GetString() ?? "" : "";
+                    var action = "UNKNOWN";
+                    var status = "UNKNOWN";
+                    
+                    if (eventTypeStr.Contains('.'))
+                    {
+                        var parts = eventTypeStr.Split('.', 2);
+                        action = parts[0].ToUpper();
+                        status = parts[1].ToUpper();
+                    }
+
                     var eventRecord = new TraceEventRecord
                     {
-                        EventId = root.GetProperty("event_id").GetString() ?? Guid.NewGuid().ToString(),
-                        JobId = root.GetProperty("job_id").GetString() ?? "unknown",
-                        ChunkId = root.TryGetProperty("chunk_id", out var c) ? c.GetString() : null,
+                        EventId = root.TryGetProperty("event_id", out var eid) ? eid.GetString() ?? Guid.NewGuid().ToString() : Guid.NewGuid().ToString(),
+                        JobId = root.TryGetProperty("job_id", out var jid) ? jid.GetString() ?? "unknown" : "unknown",
+                        ChunkId = root.TryGetProperty("chunk_index", out var ci) ? ci.ToString() : null,
                         CorrelationId = root.TryGetProperty("correlation_id", out var cor) ? cor.GetString() : null,
                         TenantId = root.TryGetProperty("tenant_id", out var t) ? t.GetString() : null,
                         UserId = root.TryGetProperty("user_id", out var u) ? u.GetString() : null,
                         AppId = root.TryGetProperty("app_id", out var a) ? a.GetString() : null,
-                        Action = root.TryGetProperty("action", out var ac) ? ac.GetString() ?? "UNKNOWN" : "UNKNOWN",
-                        Status = root.GetProperty("status").GetString() ?? "UNKNOWN",
-                        Message = root.TryGetProperty("message", out var m) ? m.GetString() : null,
-                        Metadata = root.TryGetProperty("metadata", out var meta) && meta.ValueKind != JsonValueKind.Null ? meta.GetRawText() : null,
+                        Action = action,
+                        Status = status,
+                        Message = root.TryGetProperty("error", out var err) && !string.IsNullOrEmpty(err.GetString()) ? err.GetString() : (root.TryGetProperty("message", out var m) ? m.GetString() : null),
+                        Metadata = root.TryGetProperty("extracted_data", out var ext) ? ext.GetRawText() : null,
                         Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) ? dt : DateTime.UtcNow
                     };
 
