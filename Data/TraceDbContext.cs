@@ -1,0 +1,27 @@
+
+using Microsoft.EntityFrameworkCore;
+using TraceabilityService.Models;
+
+namespace TraceabilityService.Data;
+
+public class TraceDbContext : DbContext
+{
+    public TraceDbContext(DbContextOptions<TraceDbContext> options) : base(options) { }
+
+    public DbSet<TraceEventRecord> TraceEvents => Set<TraceEventRecord>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        
+        // Add indexes for fast querying based on gRPC needs
+        modelBuilder.Entity<TraceEventRecord>()
+            .HasIndex(t => t.JobId);
+            
+        modelBuilder.Entity<TraceEventRecord>()
+            .HasIndex(t => t.CorrelationId);
+            
+        modelBuilder.Entity<TraceEventRecord>()
+            .HasIndex(t => t.Timestamp);
+    }
+}

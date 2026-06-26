@@ -1,0 +1,7 @@
+[Bb]in/
+[Oo]bj/
+*.db
+*.db-journal
+.idea/
+.vscode/
+appsettings.Development.json
