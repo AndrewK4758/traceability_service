@@ -19,6 +19,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
     <PackageReference Include="NATS.Client.Core" Version="2.8.2" />
+    <PackageReference Include="NATS.Client.JetStream" Version="2.8.2" />
   </ItemGroup>
 
 </Project>

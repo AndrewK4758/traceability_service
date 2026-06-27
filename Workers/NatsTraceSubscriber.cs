@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
+using NATS.Client.JetStream;
+using NATS.Client.JetStream.Models;
 using TraceabilityService.Data;
 using TraceabilityService.Models;
 
@@ -27,13 +29,29 @@ public class NatsTraceSubscriber : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Traceability NATS Subscriber starting up on subject 'trace.>'...");
+        _logger.LogInformation("Traceability NATS Subscriber starting up on JetStream...");
         
         try
         {
-            await foreach (var msg in _natsConnection.SubscribeAsync<byte[]>("trace.>", cancellationToken: stoppingToken))
+            var js = new NatsJSContext(_natsConnection);
+            
+            // Create the consumer if it doesn't exist
+            var consumer = await js.CreateOrUpdateConsumerAsync("TRACE_EVENTS", new ConsumerConfig
             {
-                if (msg.Data is null) continue;
+                Name = "TraceabilityService_Consumer",
+                DurableName = "TraceabilityService_Consumer",
+                FilterSubject = "trace.>",
+                AckPolicy = ConsumerConfigAckPolicy.Explicit,
+                DeliverPolicy = ConsumerConfigDeliverPolicy.All
+            }, cancellationToken: stoppingToken);
+
+            await foreach (var msg in consumer.ConsumeAsync<byte[]>(cancellationToken: stoppingToken))
+            {
+                if (msg.Data is null) 
+                {
+                    await msg.AckAsync(cancellationToken: stoppingToken);
+                    continue;
+                }
 
                 try
                 {
@@ -76,10 +94,14 @@ public class NatsTraceSubscriber : BackgroundService
                     
                     dbContext.TraceEvents.Add(eventRecord);
                     await dbContext.SaveChangesAsync(stoppingToken);
+
+                    // Acknowledge the message upon successful processing
+                    await msg.AckAsync(cancellationToken: stoppingToken);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to process trace event message on subject {Subject}", msg.Subject);
+                    await msg.NakAsync(cancellationToken: stoppingToken);
                 }
             }
         }
