@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TraceabilityService.Tests\**" />
+    <Content Remove="TraceabilityService.Tests\**" />
+    <EmbeddedResource Remove="TraceabilityService.Tests\**" />
+    <None Remove="TraceabilityService.Tests\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <Protobuf Include="..\shared_protos\traceability.proto" GrpcServices="Server" />
   </ItemGroup>
 

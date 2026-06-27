@@ -21,10 +21,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
     {
         _logger.LogInformation("Received GetJobTrace request for Job ID: {JobId}", request.JobId);
 
+        var cancellationToken = context?.CancellationToken ?? CancellationToken.None;
+
         var events = await _dbContext.TraceEvents
             .Where(e => e.JobId == request.JobId)
             .OrderBy(e => e.Timestamp)
-            .ToListAsync(context.CancellationToken);
+            .ToListAsync(cancellationToken);
 
         var response = new GetJobTraceResponse
         {
@@ -44,10 +46,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
     {
         _logger.LogInformation("Received GetCorrelationTrace request for Correlation ID: {CorrelationId}", request.CorrelationId);
 
+        var cancellationToken = context?.CancellationToken ?? CancellationToken.None;
+
         var events = await _dbContext.TraceEvents
             .Where(e => e.CorrelationId == request.CorrelationId)
             .OrderBy(e => e.Timestamp)
-            .ToListAsync(context.CancellationToken);
+            .ToListAsync(cancellationToken);
 
         var response = new GetCorrelationTraceResponse
         {
