@@ -13,6 +13,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /out .
 
-EXPOSE 50052
+EXPOSE 50053
 
 ENTRYPOINT ["dotnet", "TraceabilityService.dll"]
