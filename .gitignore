@@ -6,3 +6,6 @@
 .vscode/
 appsettings.Development.json
 data/
+
+**/[Bb]in/
+**/[Oo]bj/
