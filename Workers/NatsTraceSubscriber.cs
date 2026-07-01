@@ -1,8 +1,6 @@
 
 using System.Text.Json;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
@@ -97,8 +95,12 @@ public class NatsTraceSubscriber : BackgroundService
                     using var scope = _serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<TraceDbContext>();
                     
-                    dbContext.TraceEvents.Add(eventRecord);
-                    await dbContext.SaveChangesAsync(stoppingToken);
+                    var exists = await dbContext.TraceEvents.AnyAsync(e => e.EventId == eventRecord.EventId, stoppingToken);
+                    if (!exists)
+                    {
+                        dbContext.TraceEvents.Add(eventRecord);
+                        await dbContext.SaveChangesAsync(stoppingToken);
+                    }
 
                     // Acknowledge the message upon successful processing
                     await msg.AckAsync(cancellationToken: stoppingToken);
