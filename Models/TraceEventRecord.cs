@@ -41,6 +41,11 @@ public class TraceEventRecord
     
     public string? Metadata { get; set; }
     
+    [MaxLength(256)]
+    public string? DocumentType { get; set; }
+    
+    public int? TotalChunks { get; set; }
+    
     public DateTime Timestamp { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

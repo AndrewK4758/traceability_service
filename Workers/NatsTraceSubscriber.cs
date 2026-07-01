@@ -73,19 +73,24 @@ public class NatsTraceSubscriber : BackgroundService
                         status = parts[1].ToUpper();
                     }
 
+                    var stage = root.TryGetProperty("stage", out var s) ? s.GetString() : "UNKNOWN";
+                    var jobAction = root.TryGetProperty("job_action", out var ja) ? ja.GetString() : "UNKNOWN";
+
                     var eventRecord = new TraceEventRecord
                     {
                         EventId = root.TryGetProperty("event_id", out var eid) ? eid.GetString() ?? Guid.NewGuid().ToString() : Guid.NewGuid().ToString(),
                         JobId = root.TryGetProperty("job_id", out var jid) ? jid.GetString() ?? "unknown" : "unknown",
-                        ChunkId = root.TryGetProperty("chunk_index", out var ci) ? ci.ToString() : null,
+                        ChunkId = root.TryGetProperty("chunk_id", out var ci) ? ci.GetString() : null,
                         CorrelationId = root.TryGetProperty("correlation_id", out var cor) ? cor.GetString() : null,
                         TenantId = root.TryGetProperty("tenant_id", out var t) ? t.GetString() : null,
                         UserId = root.TryGetProperty("user_id", out var u) ? u.GetString() : null,
                         AppId = root.TryGetProperty("app_id", out var a) ? a.GetString() : null,
-                        Action = action,
-                        Status = status,
+                        DocumentType = root.TryGetProperty("document_type", out var dtType) ? dtType.GetString() : null,
+                        TotalChunks = root.TryGetProperty("total_chunks", out var tc) && tc.TryGetInt32(out var tcVal) ? tcVal : null,
+                        Action = jobAction,
+                        Status = stage,
                         Message = root.TryGetProperty("error", out var err) && !string.IsNullOrEmpty(err.GetString()) ? err.GetString() : (root.TryGetProperty("message", out var m) ? m.GetString() : null),
-                        Metadata = root.TryGetProperty("extracted_data", out var ext) ? ext.GetRawText() : null,
+                        Metadata = root.TryGetProperty("metadata", out var meta) ? meta.GetRawText() : (root.TryGetProperty("extracted_data", out var ext) ? ext.GetRawText() : null),
                         Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) ? dt : DateTime.UtcNow
                     };
 

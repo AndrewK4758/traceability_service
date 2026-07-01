@@ -94,7 +94,9 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
             Status = record.Status,
             Message = record.Message ?? string.Empty,
             Metadata = record.Metadata ?? string.Empty,
-            Timestamp = record.Timestamp.ToString("o")
+            Timestamp = record.Timestamp.ToString("o"),
+            DocumentType = record.DocumentType ?? string.Empty,
+            TotalChunks = record.TotalChunks ?? 0
         };
     }
 }
