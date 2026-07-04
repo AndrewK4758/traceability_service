@@ -84,9 +84,8 @@ public class NatsTraceSubscriber : BackgroundService
                         UserId = root.TryGetProperty("user_id", out var u) ? u.GetString() : null,
                         AppId = root.TryGetProperty("app_id", out var a) ? a.GetString() : null,
                         DocumentType = root.TryGetProperty("document_type", out var dtType) ? dtType.GetString() : null,
-                        TotalChunks = root.TryGetProperty("total_chunks", out var tc) && tc.TryGetInt32(out var tcVal) ? tcVal : null,
                         Action = jobAction,
-                        Status = stage,
+                        Status = status,
                         Message = root.TryGetProperty("error", out var err) && !string.IsNullOrEmpty(err.GetString()) ? err.GetString() : (root.TryGetProperty("message", out var m) ? m.GetString() : null),
                         Metadata = root.TryGetProperty("metadata", out var meta) ? meta.GetRawText() : (root.TryGetProperty("extracted_data", out var ext) ? ext.GetRawText() : null),
                         Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) ? dt : DateTime.UtcNow
