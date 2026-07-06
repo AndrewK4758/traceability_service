@@ -42,6 +42,8 @@ public class NatsTraceSubscriber : BackgroundService
                 AckPolicy = ConsumerConfigAckPolicy.Explicit,
                 DeliverPolicy = ConsumerConfigDeliverPolicy.All
             }, cancellationToken: stoppingToken);
+            
+            _logger.LogInformation("NATS consumer created. Subscribing to subject: {Subject}", consumer.Info.Config.FilterSubject);
 
             await foreach (var msg in consumer.ConsumeAsync<byte[]>(cancellationToken: stoppingToken))
             {
