@@ -29,7 +29,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TraceDbContext>();
-    db.Database.Migrate();
+    try 
+    {
+        db.Database.Migrate();
+    } 
+    catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.Message.Contains("already exists")) 
+    {
+        // If the database was baked into a Docker image from a previous EnsureCreated() run
+        // without migrations, we gracefully wipe it and rebuild the schema from scratch.
+        db.Database.EnsureDeleted();
+        db.Database.Migrate();
+    }
 }
 
 app.MapGrpcService<TraceabilityQueryServiceImpl>();
