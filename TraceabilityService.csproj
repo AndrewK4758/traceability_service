@@ -16,6 +16,9 @@
   
   <ItemGroup>
     <Protobuf Include="..\shared_protos\traceability.proto" GrpcServices="Server" />
+    <Protobuf Include="..\shared_protos\orchestrator.proto" GrpcServices="Client,Server" />
+    <Protobuf Include="..\shared_protos\models.proto" GrpcServices="Client,Server" />
+    <Protobuf Include="..\shared_protos\processor.proto" GrpcServices="Client,Server" />
   </ItemGroup>
 
   <ItemGroup>

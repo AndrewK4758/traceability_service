@@ -9,6 +9,7 @@ public class TraceDbContext : DbContext
     public TraceDbContext(DbContextOptions<TraceDbContext> options) : base(options) { }
 
     public DbSet<TraceEventRecord> TraceEvents => Set<TraceEventRecord>();
+    public DbSet<JobStateEntity> JobStates => Set<JobStateEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,5 +24,8 @@ public class TraceDbContext : DbContext
             
         modelBuilder.Entity<TraceEventRecord>()
             .HasIndex(t => t.Timestamp);
+
+        modelBuilder.Entity<JobStateEntity>()
+            .HasIndex(t => t.Status);
     }
 }

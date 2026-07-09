@@ -3,6 +3,8 @@ using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TraceabilityService.Data;
 using TraceabilityService.Protos;
+using Google.Protobuf;
+using Document.Orchestrator.V1;
 
 namespace TraceabilityService.Services;
 
@@ -64,6 +66,102 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         }
 
         return response;
+    }
+
+    public override async Task<SaveJobStateResponse> SaveJobState(SaveJobStateRequest request, ServerCallContext context)
+    {
+        _logger.LogInformation("Saving job state for Job ID: {JobId} with Status: {Status}", request.JobId, request.Status);
+
+        var cancellationToken = context.CancellationToken;
+        var existing = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.JobId == request.JobId, cancellationToken);
+
+        if (existing == null)
+        {
+            existing = new Models.JobStateEntity
+            {
+                JobId = request.JobId,
+                Status = request.Status,
+                OriginalRequestBytes = request.OriginalRequest?.ToByteArray() ?? Array.Empty<byte>()
+            };
+            _dbContext.JobStates.Add(existing);
+        }
+        else
+        {
+            existing.Status = request.Status;
+            if (request.OriginalRequest != null)
+            {
+                existing.OriginalRequestBytes = request.OriginalRequest.ToByteArray();
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new SaveJobStateResponse { Success = true };
+    }
+
+    public override async Task<GetPendingJobsResponse> GetPendingJobs(GetPendingJobsRequest request, ServerCallContext context)
+    {
+        _logger.LogInformation("Retrieving pending jobs");
+
+        var cancellationToken = context.CancellationToken;
+        var pendingEntities = await _dbContext.JobStates
+            .Where(x => x.Status == "PENDING")
+            .ToListAsync(cancellationToken);
+
+        var response = new GetPendingJobsResponse();
+
+        foreach (var entity in pendingEntities)
+        {
+            try
+            {
+                var originalReq = SubmitJobRequest.Parser.ParseFrom(entity.OriginalRequestBytes);
+                response.Jobs.Add(new JobStateRecord
+                {
+                    JobId = entity.JobId,
+                    Status = entity.Status,
+                    OriginalRequest = originalReq
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize pending job {JobId}", entity.JobId);
+            }
+        }
+
+        return response;
+    }
+
+    public override async Task<GetJobStateResponse> GetJobState(GetJobStateRequest request, ServerCallContext context)
+    {
+        _logger.LogInformation("Retrieving job state for Job ID: {JobId}", request.JobId);
+
+        var cancellationToken = context.CancellationToken;
+        var entity = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.JobId == request.JobId, cancellationToken);
+
+        if (entity == null)
+        {
+            return new GetJobStateResponse { Found = false };
+        }
+
+        try
+        {
+            var originalReq = SubmitJobRequest.Parser.ParseFrom(entity.OriginalRequestBytes);
+            return new GetJobStateResponse
+            {
+                Found = true,
+                Job = new JobStateRecord
+                {
+                    JobId = entity.JobId,
+                    Status = entity.Status,
+                    OriginalRequest = originalReq
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize job state for {JobId}", entity.JobId);
+            return new GetJobStateResponse { Found = false };
+        }
     }
 
     private string DetermineOverallStatus(List<Models.TraceEventRecord> events)
