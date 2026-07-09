@@ -85,7 +85,7 @@ public class NatsTraceSubscriber : BackgroundService
                     }
 
                     var stage = root.TryGetProperty("stage", out var s) ? s.GetString() : "UNKNOWN";
-                    var jobAction = root.TryGetProperty("job_action", out var ja) ? ja.GetString() : "UNKNOWN";
+                    var jobAction = root.TryGetProperty("job_action", out var ja) ? ja.GetString() ?? "UNKNOWN" : "UNKNOWN";
 
                     var eventRecord = new TraceEventRecord
                     {
