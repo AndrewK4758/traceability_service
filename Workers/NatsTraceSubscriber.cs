@@ -33,6 +33,17 @@ public class NatsTraceSubscriber : BackgroundService
         {
             var js = new NatsJSContext(_natsConnection);
             
+            // Ensure the stream exists before creating a consumer
+            try
+            {
+                await js.CreateStreamAsync(new StreamConfig("TRACE_EVENTS", new[] { "trace.>" }), cancellationToken: stoppingToken);
+                _logger.LogInformation("Ensured TRACE_EVENTS stream exists.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("CreateStreamAsync failed (might already exist or permission issue): {Message}", ex.Message);
+            }
+
             // Create the consumer if it doesn't exist
             var consumer = await js.CreateOrUpdateConsumerAsync("TRACE_EVENTS", new ConsumerConfig
             {
