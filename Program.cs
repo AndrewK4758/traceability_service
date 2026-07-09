@@ -17,8 +17,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<TraceDbContext>(options =>
     options.UseSqlite(connectionString));
 
-// Add Grpc
-builder.Services.AddGrpc();
+// Add Grpc with increased max message size
+var maxMessageSizeMb = builder.Configuration.GetValue<int?>("GRPC_MAX_MESSAGE_SIZE_MB") ?? 100;
+builder.Services.AddGrpc(options =>
+{
+    options.MaxReceiveMessageSize = maxMessageSizeMb * 1024 * 1024;
+});
 
 // Add Background Workers
 builder.Services.AddHostedService<NatsTraceSubscriber>();
