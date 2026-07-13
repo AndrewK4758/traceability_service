@@ -71,32 +71,47 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
     public override async Task<SaveJobStateResponse> SaveJobState(SaveJobStateRequest request, ServerCallContext context)
     {
         _logger.LogInformation("Saving job state for Job ID: {JobId} with Status: {Status}", request.JobId, request.Status);
-
         var cancellationToken = context.CancellationToken;
-        var existing = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.JobId == request.JobId, cancellationToken);
 
-        if (existing == null)
+        int retries = 3;
+        while (retries > 0)
         {
-            existing = new Models.JobStateEntity
+            try
             {
-                JobId = request.JobId,
-                Status = request.Status,
-                OriginalRequestBytes = request.OriginalRequest?.ToByteArray() ?? Array.Empty<byte>()
-            };
-            _dbContext.JobStates.Add(existing);
-        }
-        else
-        {
-            existing.Status = request.Status;
-            if (request.OriginalRequest != null)
+                var existing = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.JobId == request.JobId, cancellationToken);
+                if (existing == null)
+                {
+                    existing = new Models.JobStateEntity
+                    {
+                        JobId = request.JobId,
+                        Status = request.Status,
+                        OriginalRequestBytes = request.OriginalRequest?.ToByteArray() ?? Array.Empty<byte>()
+                    };
+                    _dbContext.JobStates.Add(existing);
+                }
+                else
+                {
+                    existing.Status = request.Status;
+                    if (request.OriginalRequest != null)
+                    {
+                        existing.OriginalRequestBytes = request.OriginalRequest.ToByteArray();
+                    }
+                }
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return new SaveJobStateResponse { Success = true };
+            }
+            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
             {
-                existing.OriginalRequestBytes = request.OriginalRequest.ToByteArray();
+                _logger.LogWarning("Concurrency conflict on SaveJobState for {JobId}, retrying...", request.JobId);
+                // Detach everything to reset the DbContext state before retrying
+                _dbContext.ChangeTracker.Clear();
+                retries--;
+                if (retries == 0) throw;
             }
         }
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return new SaveJobStateResponse { Success = true };
+        
+        return new SaveJobStateResponse { Success = false };
     }
 
     public override async Task<GetPendingJobsResponse> GetPendingJobs(GetPendingJobsRequest request, ServerCallContext context)
