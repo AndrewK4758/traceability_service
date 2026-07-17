@@ -129,7 +129,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         {
             try
             {
-                var originalReq = SubmitJobRequest.Parser.ParseFrom(entity.OriginalRequestBytes);
+                var originalReq = ExecuteWorkflowNodeRequest.Parser.ParseFrom(entity.OriginalRequestBytes);
                 response.Jobs.Add(new JobStateRecord
                 {
                     JobId = entity.JobId,
@@ -160,7 +160,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
 
         try
         {
-            var originalReq = SubmitJobRequest.Parser.ParseFrom(entity.OriginalRequestBytes);
+            var originalReq = ExecuteWorkflowNodeRequest.Parser.ParseFrom(entity.OriginalRequestBytes);
             return new GetJobStateResponse
             {
                 Found = true,
