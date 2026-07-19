@@ -30,11 +30,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
             .OrderBy(e => e.Timestamp)
             .ToListAsync(cancellationToken);
 
-        var response = new GetJobTraceResponse
-        {
-            JobId = request.JobId,
-            Status = DetermineOverallStatus(events)
-        };
+        var response = new GetJobTraceResponse();
 
         foreach (var ev in events)
         {
@@ -55,10 +51,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
             .OrderBy(e => e.Timestamp)
             .ToListAsync(cancellationToken);
 
-        var response = new GetCorrelationTraceResponse
-        {
-            CorrelationId = request.CorrelationId
-        };
+        var response = new GetCorrelationTraceResponse();
 
         foreach (var ev in events)
         {
@@ -194,21 +187,20 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
 
     private TraceEvent MapToProto(Models.TraceEventRecord record)
     {
+        #pragma warning disable CS0618
         return new TraceEvent
         {
-            EventId = record.EventId,
+            Id = record.EventId,
             JobId = record.JobId,
-            ChunkId = record.ChunkId ?? string.Empty,
+            ResourceId = record.ChunkId ?? string.Empty,
             CorrelationId = record.CorrelationId ?? string.Empty,
-            TenantId = record.TenantId ?? string.Empty,
-            UserId = record.UserId ?? string.Empty,
-            AppId = record.AppId ?? string.Empty,
-            Action = record.Action,
-            Status = record.Status,
-            Message = record.Message ?? string.Empty,
+            EventType = record.Action ?? string.Empty,
+            StepId = record.AppId ?? string.Empty, // mapping app id to step id as fallback
+            Message = record.Message,
             Metadata = record.Metadata ?? string.Empty,
-            Timestamp = record.Timestamp.ToString("o"),
+            Timestamp = record.Timestamp.ToString("O"),
             DocumentType = record.DocumentType ?? string.Empty
         };
+        #pragma warning restore CS0618
     }
 }
