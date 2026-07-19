@@ -51,7 +51,9 @@ public class NatsTraceSubscriber : BackgroundService
                 DurableName = "TraceabilityService_Consumer",
                 FilterSubject = "trace.>",
                 AckPolicy = ConsumerConfigAckPolicy.Explicit,
-                DeliverPolicy = ConsumerConfigDeliverPolicy.All
+                DeliverPolicy = ConsumerConfigDeliverPolicy.All,
+                MaxDeliver = 3,
+                AckWait = TimeSpan.FromSeconds(30)
             }, cancellationToken: stoppingToken);
             
             _logger.LogInformation("NATS consumer created. Subscribing to subject: {Subject}", consumer.Info.Config.FilterSubject);
@@ -115,6 +117,11 @@ public class NatsTraceSubscriber : BackgroundService
                     }
 
                     // Acknowledge the message upon successful processing
+                    await msg.AckAsync(cancellationToken: stoppingToken);
+                }
+                catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                {
+                    _logger.LogWarning(ex, "DbUpdateException processing trace event (possible duplicate). Acking message.");
                     await msg.AckAsync(cancellationToken: stoppingToken);
                 }
                 catch (Exception ex)
