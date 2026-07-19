@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package document.orchestrator.v1;
+
+option go_package = "github.com/AndrewK4758/shared_protos";
+option csharp_namespace = "Document.Orchestrator.V1";
+
+import "models.proto";
+import "google/protobuf/struct.proto";
+
+service OrchestratorService {
+  // Unified endpoint replacing SubmitJob, StartJob, and SubmitStep
+  rpc ExecuteWorkflowNode(stream ExecuteWorkflowNodeRequest) returns (stream ExecuteWorkflowNodeResponse);
+
+  // Client listens to this Server Stream to get real-time progress of their JobID
+  rpc ListenForProgress(ListenRequest) returns (stream ProgressUpdate);
+
+  // Resume a job after human validation has corrected the AI output
+  rpc ResumeJob(ResumeJobRequest) returns (ResumeJobResponse);
+
+  // Commands the Orchestrator to cancel jobs and optionally purge streams.
+  rpc PurgeSystemState(PurgeSystemStateRequest) returns (PurgeSystemStateResponse);
+}
+
+message ExecuteWorkflowNodeRequest {
+  string job_id = 1 [deprecated = true];
+  string step_id = 2; // The current node being executed
+  string callback_address = 3; // Where to webhook the mutated state
+
+  google.protobuf.Struct global_state = 4; // The single source of truth payload
+  map<string, string> metadata = 5; // e.g. correlation_id
+
+  document.models.v1.NodeConfiguration node_config = 6;
+  
+  document.models.v1.InfrastructureIdentity identity = 7;
+}
+
+message ExecuteWorkflowNodeResponse {
+  bool success = 1;
+  string message = 2;
+  string step_id = 3;
+}
+
+message ListenRequest {
+  string job_id = 1 [deprecated = true];
+  document.models.v1.InfrastructureIdentity identity = 2;
+}
+
+message ProgressUpdate {
+  string job_id = 1 [deprecated = true];
+  string status = 2; // e.g., "CHUNKING", "PROCESSING", "STITCHING", "COMPLETE", "FAILED"
+  string message = 3; // Detailed message, e.g., "Processing chunk 2 of 5"
+  
+  // Only populated when status == "COMPLETE"
+  string final_results_json = 4;
+  
+  document.models.v1.InfrastructureIdentity identity = 5;
+}
+
+message ResumeJobRequest {
+  string job_id = 1 [deprecated = true];
+  string corrected_json = 2;
+  string step_id = 3;
+  document.models.v1.InfrastructureIdentity identity = 4;
+}
+
+message ResumeJobResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message PurgeSystemStateRequest {
+  string job_id = 1 [deprecated = true];         // Scopes the cancellation to a specific tenant/app
+  bool purge_queues = 2;     // Explicit command to purge NATS JetStream queues
+  document.models.v1.InfrastructureIdentity identity = 3;
+}
+
+message PurgeSystemStateResponse {
+  bool success = 1;
+  int32 jobs_cancelled = 2;
+  int32 queues_purged = 3;
+}
+
+service OrchestratorCallbackService {
+  rpc OnNodeExecutionComplete(stream NodeExecutionCompleteRequest) returns (stream NodeExecutionCompleteResponse);
+  rpc OnJobFailed(JobFailedRequest) returns (JobFailedResponse);
+}
+
+message NodeExecutionCompleteRequest {
+  string job_id = 1 [deprecated = true];
+  string completed_step_id = 2;
+  
+  google.protobuf.Struct global_state = 3; // The mutated state 
+  google.protobuf.Struct node_output = 4;  // The isolated output for dynamic rule evaluation
+  
+  bool success = 5;
+  string error_message = 6;
+  
+  document.models.v1.InfrastructureIdentity identity = 7;
+}
+
+message NodeExecutionCompleteResponse {
+  bool success = 1; 
+}
+
+message JobFailedRequest {
+  string job_id = 1 [deprecated = true];
+  string failed_step_id = 2;
+  string error_message = 3;
+  
+  document.models.v1.InfrastructureIdentity identity = 4;
+}
+
+message JobFailedResponse {
+  bool success = 1;
+}

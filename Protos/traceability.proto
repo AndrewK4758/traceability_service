@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package traceability;
+
+option go_package = "github.com/AndrewK4758/shared_protos";
+option csharp_namespace = "TraceabilityService.Protos";
+
+import "orchestrator.proto";
+import "models.proto";
+
+// The gRPC service for querying compliance and traceability events
+service TraceabilityQuery {
+  // Returns all trace events associated with a specific JobID
+  rpc GetJobTrace (GetJobTraceRequest) returns (GetJobTraceResponse);
+
+  // Returns all trace events associated with a cross-job correlation ID
+  rpc GetCorrelationTrace (GetCorrelationTraceRequest) returns (GetCorrelationTraceResponse);
+  
+  // Persists the active state of a job (e.g. pending orchestrator execution)
+  rpc SaveJobState (SaveJobStateRequest) returns (SaveJobStateResponse);
+  
+  // Retrieves all jobs currently in a "PENDING" or "IN_PROGRESS" state
+  rpc GetPendingJobs (GetPendingJobsRequest) returns (GetPendingJobsResponse);
+  
+  // Retrieves the exact state of a specific job by ID
+  rpc GetJobState (GetJobStateRequest) returns (GetJobStateResponse);
+}
+
+message GetJobTraceRequest {
+  string job_id = 1;
+  document.models.v1.InfrastructureIdentity identity = 2;
+}
+
+message GetJobTraceResponse {
+  repeated TraceEvent events = 1;
+}
+
+message GetCorrelationTraceRequest {
+  string correlation_id = 1;
+  document.models.v1.InfrastructureIdentity identity = 2;
+}
+
+message GetCorrelationTraceResponse {
+  repeated TraceEvent events = 1;
+}
+
+message TraceEvent {
+  string id = 1;
+  string correlation_id = 2;
+  string job_id = 3;
+  string step_id = 4;
+  string event_type = 5;
+  string resource_id = 6;
+  string message = 7;
+  string metadata = 11;
+  string timestamp = 12;
+  string document_type = 13;
+}
+
+message SaveJobStateRequest {
+  string job_id = 1 [deprecated = true];
+  document.orchestrator.v1.ExecuteWorkflowNodeRequest original_request = 2; // Full config
+  string status = 3; // "PENDING", "COMPLETED", "FAILED"
+  document.models.v1.InfrastructureIdentity identity = 4;
+}
+
+message SaveJobStateResponse {
+  bool success = 1;
+}
+
+message GetPendingJobsRequest {
+  document.models.v1.InfrastructureIdentity identity = 1;
+}
+
+message GetPendingJobsResponse {
+  repeated JobStateRecord jobs = 1;
+}
+
+message JobStateRecord {
+  string job_id = 1;
+  document.orchestrator.v1.ExecuteWorkflowNodeRequest original_request = 2;
+  string status = 3;
+  document.models.v1.InfrastructureIdentity identity = 4;
+}
+
+message GetJobStateRequest {
+  string job_id = 1 [deprecated = true];
+  document.models.v1.InfrastructureIdentity identity = 2;
+}
+
+message GetJobStateResponse {
+  bool found = 1;
+  JobStateRecord job = 2;
+}

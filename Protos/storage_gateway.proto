@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package shared_protos;
+
+option go_package = "github.com/AndrewK4758/shared_protos";
+
+import "models.proto";
+
+service StorageGatewayService {
+    // Uploads a document via streaming bytes to the internal MinIO cluster.
+    // The C# Client must pass `tenant_id` and `app_id` in the gRPC headers (metadata).
+    rpc UploadDocument(stream UploadRequest) returns (UploadResponse);
+
+    // Downloads a document via streaming bytes.
+    // The gateway verifies the requested URI against the `tenant_id` in the headers.
+    rpc DownloadDocument(DownloadRequest) returns (stream DownloadResponse);
+
+    // Clears all temporary job data from MinIO for a specific job.
+    rpc ClearJobData(ClearJobDataRequest) returns (ClearJobDataResponse);
+}
+
+message UploadRequest {
+    // The first chunk must contain the metadata. Subsequent chunks only need the chunk_data.
+    oneof upload_element {
+        UploadMetadata metadata = 1;
+        bytes chunk_data = 2;
+    }
+}
+
+message UploadMetadata {
+    document.models.v1.InfrastructureIdentity identity = 1;
+    // The original filename (e.g., "invoice.pdf")
+    string original_filename = 2;
+}
+
+message UploadResponse {
+    bool success = 1;
+    string error_message = 2;
+    // The internal reference string, e.g. "internal-store://tenant_id/app_id/job_id/filename.pdf"
+    string storage_uri = 3;
+}
+
+message DownloadRequest {
+    // The exact internal reference string to download
+    string storage_uri = 1;
+    document.models.v1.InfrastructureIdentity identity = 2;
+}
+
+message DownloadResponse {
+    bytes chunk_data = 1;
+}
+
+message ClearJobDataRequest {
+    document.models.v1.InfrastructureIdentity identity = 1;
+}
+
+message ClearJobDataResponse {
+    bool success = 1;
+    string error_message = 2;
+    int32 files_deleted = 3;
+}

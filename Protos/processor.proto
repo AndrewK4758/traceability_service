@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package document.processor.v1;
+
+option go_package = "github.com/AndrewK4758/shared_protos";
+option csharp_namespace = "Document.Processor.V1";
+
+import "models.proto";
+import "orchestrator.proto";
+
+service DocumentProcessor {
+  // Existing Async method (keeps current NATS architecture intact for legacy)
+  rpc ProcessDocument(stream ProcessDocumentRequest) returns (stream ProcessDocumentResponse);
+  
+  // NEW: Synchronous method for the Orchestrator to use for fast, blocking execution of a generic action
+  rpc PerformAction(stream PerformActionRequest) returns (stream PerformActionResponse);
+  
+  // NEW: Query AI Service for available models
+  rpc GetAvailableModels(GetAvailableModelsRequest) returns (GetAvailableModelsResponse);
+}
+
+message ProcessDocumentRequest {
+  bytes file_content = 1;
+  string file_name = 2;
+  document.models.v1.ModelChoice model_choice = 3;
+  string document_type = 4;
+  repeated string target_fields = 5;
+  string json_schema = 6;
+  string custom_instructions = 7;
+  string app_id = 8;
+  string correlation_id = 9;
+  document.models.v1.InfrastructureIdentity identity = 10;
+}
+
+message ProcessDocumentResponse {
+  bool success = 1;
+  string error_message = 2;
+  string correlation_id = 3;
+  string status = 4;
+}
+
+// --- NEW MESSAGES FOR ORCHESTRATOR ---
+
+message PerformActionRequest {
+  // Optional raw binary input (e.g. image, pdf chunk, file content)
+  bytes input_bytes = 1;
+  
+  document.orchestrator.v1.ExecuteWorkflowNodeRequest context = 2;
+  document.models.v1.ActionDefinition current_action = 3;
+  
+  document.models.v1.ModelChoice model_choice = 4;
+
+  // Optional text input (e.g. plain text, markdown, existing state)
+  string input_text = 5;
+  document.models.v1.InfrastructureIdentity identity = 6;
+}
+
+message PerformActionResponse {
+  bool success = 1;
+  string error_message = 2;
+  
+  // The raw JSON string returned by the LLM conforming to json_schema
+  string action_result_json = 3;
+}
+
+message GetAvailableModelsRequest {
+  document.models.v1.InfrastructureIdentity identity = 1;
+}
+
+message GetAvailableModelsResponse {
+  repeated string text_models = 1;
+  repeated string ocr_models = 2;
+}

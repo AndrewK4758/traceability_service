@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package document.registry.v1;
+
+option go_package = "github.com/AndrewK4758/shared_protos";
+
+import "models.proto";
+
+service SchemaRegistryService {
+  rpc GetRulesForClassification(GetRulesRequest) returns (GetRulesResponse);
+}
+
+message GetRulesRequest {
+  string classification_name = 1;
+  document.models.v1.InfrastructureIdentity identity = 2;
+}
+
+message GetRulesResponse {
+  bool success = 1;
+  string error_message = 2;
+  string rules_text = 3;
+  string json_schema = 4;
+}

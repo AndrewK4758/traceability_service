@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package document.validation.v1;
+
+option go_package = "github.com/AndrewK4758/shared_protos";
+
+import "models.proto";
+
+service HumanValidationService {
+  // Orchestrator or Client registers a task needing human validation
+  rpc CreateValidationTask(CreateTaskRequest) returns (CreateTaskResponse);
+
+  // Retrieve pending tasks for review
+  rpc GetPendingTasks(GetPendingTasksRequest) returns (stream PendingTask);
+
+  // Submit corrected JSON from human UI or script
+  rpc SubmitCorrection(SubmitCorrectionRequest) returns (SubmitCorrectionResponse);
+}
+
+message CreateTaskRequest {
+  document.models.v1.InfrastructureIdentity identity = 1;
+  string step_name = 2;
+  string failed_ai_output = 3;
+  string expected_schema = 4;
+  string prompt_instructions = 5;
+  string error_message = 6;
+  repeated string target_fields = 7;
+  string global_state_json = 8;
+  string job_name = 9;
+  string step_id = 10;
+  string step_context_input = 11;
+}
+
+message CreateTaskResponse {
+  string task_id = 1;
+  string status = 2; // e.g., "CREATED"
+}
+
+message GetPendingTasksRequest {
+  string filter_status = 1;
+  document.models.v1.InfrastructureIdentity identity = 2;
+}
+
+message PendingTask {
+  string task_id = 1;
+  document.models.v1.InfrastructureIdentity identity = 2;
+  string step_name = 3;
+  string failed_ai_output = 4;
+  string expected_schema = 5;
+  string prompt_instructions = 6;
+  string error_message = 7;
+  repeated string target_fields = 8;
+  string status = 9; // e.g., "PENDING", "RESOLVED"
+  string global_state_json = 10;
+  string job_name = 11;
+  string step_id = 12;
+  string step_context_input = 13;
+}
+
+message GetPendingTasksResponse {
+  repeated PendingTask tasks = 1;
+}
+
+message SubmitCorrectionRequest {
+  string task_id = 1;
+  string corrected_json = 2;
+  document.models.v1.InfrastructureIdentity identity = 3;
+}
+
+message SubmitCorrectionResponse {
+  bool success = 1;
+  string message = 2;
+}
