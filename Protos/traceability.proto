@@ -52,6 +52,7 @@ message TraceEvent {
   string event_type = 5;
   string resource_id = 6;
   string message = 7;
+  reserved 8, 9, 10;
   string metadata = 11;
   string timestamp = 12;
   string document_type = 13;
