@@ -26,7 +26,9 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         var cancellationToken = context?.CancellationToken ?? CancellationToken.None;
 
         var events = await _dbContext.TraceEvents
-            .Where(e => e.JobId == request.Identity.JobId)
+            .Where(e => e.TenantId == request.Identity.TenantId 
+                     && e.AppId == request.Identity.AppId 
+                     && e.JobId == request.Identity.JobId)
             .OrderBy(e => e.Timestamp)
             .ToListAsync(cancellationToken);
 
@@ -47,7 +49,9 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         var cancellationToken = context?.CancellationToken ?? CancellationToken.None;
 
         var events = await _dbContext.TraceEvents
-            .Where(e => e.CorrelationId == request.CorrelationId)
+            .Where(e => e.TenantId == request.Identity.TenantId 
+                     && e.AppId == request.Identity.AppId 
+                     && e.CorrelationId == request.CorrelationId)
             .OrderBy(e => e.Timestamp)
             .ToListAsync(cancellationToken);
 

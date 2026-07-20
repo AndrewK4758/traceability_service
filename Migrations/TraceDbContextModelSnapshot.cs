@@ -102,11 +102,11 @@ namespace TraceabilityService.Migrations
 
                     b.HasKey("EventId");
 
-                    b.HasIndex("CorrelationId");
-
-                    b.HasIndex("JobId");
-
                     b.HasIndex("Timestamp");
+
+                    b.HasIndex("TenantId", "AppId", "CorrelationId");
+
+                    b.HasIndex("TenantId", "AppId", "JobId");
 
                     b.ToTable("TraceEvents");
                 });

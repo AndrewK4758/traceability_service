@@ -17,10 +17,10 @@ public class TraceDbContext : DbContext
         
         // Add indexes for fast querying based on gRPC needs
         modelBuilder.Entity<TraceEventRecord>()
-            .HasIndex(t => t.JobId);
+            .HasIndex(t => new { t.TenantId, t.AppId, t.JobId });
             
         modelBuilder.Entity<TraceEventRecord>()
-            .HasIndex(t => t.CorrelationId);
+            .HasIndex(t => new { t.TenantId, t.AppId, t.CorrelationId });
             
         modelBuilder.Entity<TraceEventRecord>()
             .HasIndex(t => t.Timestamp);
