@@ -27,7 +27,7 @@ message ProcessDocumentRequest {
   repeated string target_fields = 5;
   string json_schema = 6;
   string custom_instructions = 7;
-  string app_id = 8;
+  reserved 8; reserved "app_id";
   string correlation_id = 9;
   document.models.v1.InfrastructureIdentity identity = 10;
 }

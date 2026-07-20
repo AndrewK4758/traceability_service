@@ -5,7 +5,8 @@ namespace TraceabilityService.Models;
 
 public class JobStateEntity
 {
-    [Key]
+    public string TenantId { get; set; } = string.Empty;
+    public string AppId { get; set; } = string.Empty;
     public string JobId { get; set; } = string.Empty;
 
     // We store the serialized protobuf byte array directly

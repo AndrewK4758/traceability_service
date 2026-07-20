@@ -19,6 +19,12 @@ namespace TraceabilityService.Migrations
 
             modelBuilder.Entity("TraceabilityService.Models.JobStateEntity", b =>
                 {
+                    b.Property<string>("TenantId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AppId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("JobId")
                         .HasColumnType("TEXT");
 
@@ -30,7 +36,7 @@ namespace TraceabilityService.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("JobId");
+                    b.HasKey("TenantId", "AppId", "JobId");
 
                     b.HasIndex("Status");
 

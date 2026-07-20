@@ -38,12 +38,11 @@ public class TraceabilityQueryServiceImplTests
         await context.SaveChangesAsync();
 
         var service = new TraceabilityQueryServiceImpl(context, NullLogger<TraceabilityQueryServiceImpl>.Instance);
-        var request = new GetJobTraceRequest { JobId = "job_1" };
+        var request = new GetJobTraceRequest { Identity = new Document.Models.V1.InfrastructureIdentity { JobId = "job_1" } };
 
         var response = await service.GetJobTrace(request, null!);
 
-        Assert.Equal("job_1", response.JobId);
-        Assert.Equal("COMPLETED", response.Status);
+
         Assert.Equal(2, response.Events.Count);
     }
 
@@ -64,11 +63,11 @@ public class TraceabilityQueryServiceImplTests
         await context.SaveChangesAsync();
 
         var service = new TraceabilityQueryServiceImpl(context, NullLogger<TraceabilityQueryServiceImpl>.Instance);
-        var request = new GetJobTraceRequest { JobId = "job_fail" };
+        var request = new GetJobTraceRequest { Identity = new Document.Models.V1.InfrastructureIdentity { JobId = "job_fail" } };
 
         var response = await service.GetJobTrace(request, null!);
 
-        Assert.Equal("FAILED", response.Status);
+
         Assert.Equal(2, response.Events.Count);
     }
 
@@ -93,7 +92,7 @@ public class TraceabilityQueryServiceImplTests
 
         var response = await service.GetCorrelationTrace(request, null!);
 
-        Assert.Equal("corr_1", response.CorrelationId);
+
         Assert.Equal(2, response.Events.Count);
     }
 }

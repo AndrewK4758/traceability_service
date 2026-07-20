@@ -97,6 +97,7 @@ message NodeExecutionCompleteRequest {
   string error_message = 6;
   
   document.models.v1.InfrastructureIdentity identity = 7;
+  map<string, string> metadata = 8;
 }
 
 message NodeExecutionCompleteResponse {
@@ -109,6 +110,7 @@ message JobFailedRequest {
   string error_message = 3;
   
   document.models.v1.InfrastructureIdentity identity = 4;
+  map<string, string> metadata = 5;
 }
 
 message JobFailedResponse {

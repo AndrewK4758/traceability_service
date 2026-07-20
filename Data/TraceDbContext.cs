@@ -26,6 +26,9 @@ public class TraceDbContext : DbContext
             .HasIndex(t => t.Timestamp);
 
         modelBuilder.Entity<JobStateEntity>()
+            .HasKey(e => new { e.TenantId, e.AppId, e.JobId });
+
+        modelBuilder.Entity<JobStateEntity>()
             .HasIndex(t => t.Status);
     }
 }

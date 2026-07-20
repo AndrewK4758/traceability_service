@@ -29,6 +29,7 @@ message CreateTaskRequest {
   string job_name = 9;
   string step_id = 10;
   string step_context_input = 11;
+  map<string, string> metadata = 12;
 }
 
 message CreateTaskResponse {
@@ -55,6 +56,7 @@ message PendingTask {
   string job_name = 11;
   string step_id = 12;
   string step_context_input = 13;
+  map<string, string> metadata = 14;
 }
 
 message GetPendingTasksResponse {

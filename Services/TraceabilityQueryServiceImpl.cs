@@ -21,12 +21,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
 
     public override async Task<GetJobTraceResponse> GetJobTrace(GetJobTraceRequest request, ServerCallContext context)
     {
-        _logger.LogInformation("Received GetJobTrace request for Job ID: {JobId}", request.JobId);
+        _logger.LogInformation("Received GetJobTrace request for Job ID: {JobId}", request.Identity.JobId);
 
         var cancellationToken = context?.CancellationToken ?? CancellationToken.None;
 
         var events = await _dbContext.TraceEvents
-            .Where(e => e.JobId == request.JobId)
+            .Where(e => e.JobId == request.Identity.JobId)
             .OrderBy(e => e.Timestamp)
             .ToListAsync(cancellationToken);
 
@@ -63,7 +63,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
 
     public override async Task<SaveJobStateResponse> SaveJobState(SaveJobStateRequest request, ServerCallContext context)
     {
-        _logger.LogInformation("Saving job state for Job ID: {JobId} with Status: {Status}", request.JobId, request.Status);
+        _logger.LogInformation("Saving job state for TenantId: {TenantId} | AppId: {AppId} | JobId: {JobId} with Status: {Status}", request.Identity.TenantId, request.Identity.AppId, request.Identity.JobId, request.Status);
         var cancellationToken = context.CancellationToken;
 
         int retries = 3;
@@ -71,12 +71,14 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         {
             try
             {
-                var existing = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.JobId == request.JobId, cancellationToken);
+                var existing = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.TenantId == request.Identity.TenantId && x.AppId == request.Identity.AppId && x.JobId == request.Identity.JobId, cancellationToken);
                 if (existing == null)
                 {
                     existing = new Models.JobStateEntity
                     {
-                        JobId = request.JobId,
+                        TenantId = request.Identity.TenantId,
+                        AppId = request.Identity.AppId,
+                        JobId = request.Identity.JobId,
                         Status = request.Status,
                         OriginalRequestBytes = request.OriginalRequest?.ToByteArray() ?? Array.Empty<byte>()
                     };
@@ -96,7 +98,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
             }
             catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
             {
-                _logger.LogWarning("Concurrency conflict on SaveJobState for {JobId}, retrying...", request.JobId);
+                _logger.LogWarning("Concurrency conflict on SaveJobState for {JobId}, retrying...", request.Identity.JobId);
                 // Detach everything to reset the DbContext state before retrying
                 _dbContext.ChangeTracker.Clear();
                 retries--;
@@ -125,7 +127,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
                 var originalReq = ExecuteWorkflowNodeRequest.Parser.ParseFrom(entity.OriginalRequestBytes);
                 response.Jobs.Add(new JobStateRecord
                 {
-                    JobId = entity.JobId,
+                    Identity = new Document.Models.V1.InfrastructureIdentity
+                    {
+                        TenantId = entity.TenantId,
+                        AppId = entity.AppId,
+                        JobId = entity.JobId
+                    },
                     Status = entity.Status,
                     OriginalRequest = originalReq
                 });
@@ -141,10 +148,10 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
 
     public override async Task<GetJobStateResponse> GetJobState(GetJobStateRequest request, ServerCallContext context)
     {
-        _logger.LogInformation("Retrieving job state for Job ID: {JobId}", request.JobId);
+        _logger.LogInformation("Retrieving job state for TenantId: {TenantId} | AppId: {AppId} | JobId: {JobId}", request.Identity.TenantId, request.Identity.AppId, request.Identity.JobId);
 
         var cancellationToken = context.CancellationToken;
-        var entity = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.JobId == request.JobId, cancellationToken);
+        var entity = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.TenantId == request.Identity.TenantId && x.AppId == request.Identity.AppId && x.JobId == request.Identity.JobId, cancellationToken);
 
         if (entity == null)
         {
@@ -159,7 +166,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
                 Found = true,
                 Job = new JobStateRecord
                 {
-                    JobId = entity.JobId,
+                    Identity = new Document.Models.V1.InfrastructureIdentity
+                    {
+                        TenantId = entity.TenantId,
+                        AppId = entity.AppId,
+                        JobId = entity.JobId
+                    },
                     Status = entity.Status,
                     OriginalRequest = originalReq
                 }
@@ -191,12 +203,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         return new TraceEvent
         {
             Id = record.EventId,
-            JobId = record.JobId,
+            JobId = record.JobId ?? string.Empty,
             ResourceId = record.ChunkId ?? string.Empty,
             CorrelationId = record.CorrelationId ?? string.Empty,
             EventType = record.Action ?? string.Empty,
             StepId = record.AppId ?? string.Empty, // mapping app id to step id as fallback
-            Message = record.Message,
+            Message = record.Message ?? string.Empty,
             Metadata = record.Metadata ?? string.Empty,
             Timestamp = record.Timestamp.ToString("O"),
             DocumentType = record.DocumentType ?? string.Empty

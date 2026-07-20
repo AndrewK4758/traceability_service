@@ -27,7 +27,7 @@ service TraceabilityQuery {
 }
 
 message GetJobTraceRequest {
-  string job_id = 1;
+  reserved 1; reserved "job_id";
   document.models.v1.InfrastructureIdentity identity = 2;
 }
 
@@ -59,7 +59,7 @@ message TraceEvent {
 }
 
 message SaveJobStateRequest {
-  string job_id = 1 [deprecated = true];
+  reserved 1; reserved "job_id";
   document.orchestrator.v1.ExecuteWorkflowNodeRequest original_request = 2; // Full config
   string status = 3; // "PENDING", "COMPLETED", "FAILED"
   document.models.v1.InfrastructureIdentity identity = 4;
@@ -78,14 +78,14 @@ message GetPendingJobsResponse {
 }
 
 message JobStateRecord {
-  string job_id = 1;
+  reserved 1; reserved "job_id";
   document.orchestrator.v1.ExecuteWorkflowNodeRequest original_request = 2;
   string status = 3;
   document.models.v1.InfrastructureIdentity identity = 4;
 }
 
 message GetJobStateRequest {
-  string job_id = 1 [deprecated = true];
+  reserved 1; reserved "job_id";
   document.models.v1.InfrastructureIdentity identity = 2;
 }
 
