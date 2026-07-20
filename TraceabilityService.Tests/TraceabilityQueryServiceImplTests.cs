@@ -29,16 +29,16 @@ public class TraceabilityQueryServiceImplTests
         
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "1", JobId = "job_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
+            EventId = "1", TenantId = "T1", AppId = "A1", JobId = "job_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
         });
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "2", JobId = "job_1", Action = "JOB", Status = "COMPLETED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
+            EventId = "2", TenantId = "T1", AppId = "A1", JobId = "job_1", Action = "JOB", Status = "COMPLETED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
         });
         await context.SaveChangesAsync();
 
         var service = new TraceabilityQueryServiceImpl(context, NullLogger<TraceabilityQueryServiceImpl>.Instance);
-        var request = new GetJobTraceRequest { Identity = new Document.Models.V1.InfrastructureIdentity { JobId = "job_1" } };
+        var request = new GetJobTraceRequest { Identity = new Document.Models.V1.InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_1" } };
 
         var response = await service.GetJobTrace(request, null!);
 
@@ -54,16 +54,16 @@ public class TraceabilityQueryServiceImplTests
         
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "1", JobId = "job_fail", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
+            EventId = "1", TenantId = "T1", AppId = "A1", JobId = "job_fail", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
         });
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "2", JobId = "job_fail", Action = "CHUNK", Status = "FAILED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
+            EventId = "2", TenantId = "T1", AppId = "A1", JobId = "job_fail", Action = "CHUNK", Status = "FAILED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
         });
         await context.SaveChangesAsync();
 
         var service = new TraceabilityQueryServiceImpl(context, NullLogger<TraceabilityQueryServiceImpl>.Instance);
-        var request = new GetJobTraceRequest { Identity = new Document.Models.V1.InfrastructureIdentity { JobId = "job_fail" } };
+        var request = new GetJobTraceRequest { Identity = new Document.Models.V1.InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_fail" } };
 
         var response = await service.GetJobTrace(request, null!);
 
@@ -79,16 +79,19 @@ public class TraceabilityQueryServiceImplTests
         
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "1", JobId = "job_1", CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
+            EventId = "1", TenantId = "T1", AppId = "A1", JobId = "job_1", CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
         });
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "2", JobId = "job_2", CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
+            EventId = "2", TenantId = "T1", AppId = "A1", JobId = "job_2", CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
         });
         await context.SaveChangesAsync();
 
         var service = new TraceabilityQueryServiceImpl(context, NullLogger<TraceabilityQueryServiceImpl>.Instance);
-        var request = new GetCorrelationTraceRequest { CorrelationId = "corr_1" };
+        var request = new GetCorrelationTraceRequest { 
+            CorrelationId = "corr_1",
+            Identity = new Document.Models.V1.InfrastructureIdentity { TenantId = "T1", AppId = "A1" }
+        };
 
         var response = await service.GetCorrelationTrace(request, null!);
 

@@ -10,7 +10,7 @@ import "google/protobuf/struct.proto";
 
 service OrchestratorService {
   // Unified endpoint replacing SubmitJob, StartJob, and SubmitStep
-  rpc ExecuteWorkflowNode(stream ExecuteWorkflowNodeRequest) returns (stream ExecuteWorkflowNodeResponse);
+  rpc ExecuteWorkflowNode(ExecuteWorkflowNodeRequest) returns (ExecuteWorkflowNodeResponse);
 
   // Client listens to this Server Stream to get real-time progress of their JobID
   rpc ListenForProgress(ListenRequest) returns (stream ProgressUpdate);
@@ -84,6 +84,7 @@ message PurgeSystemStateResponse {
 service OrchestratorCallbackService {
   rpc OnNodeExecutionComplete(stream NodeExecutionCompleteRequest) returns (stream NodeExecutionCompleteResponse);
   rpc OnJobFailed(JobFailedRequest) returns (JobFailedResponse);
+  rpc OnJobSuspended(JobSuspendedRequest) returns (JobSuspendedResponse);
 }
 
 message NodeExecutionCompleteRequest {
@@ -111,8 +112,26 @@ message JobFailedRequest {
   
   document.models.v1.InfrastructureIdentity identity = 4;
   map<string, string> metadata = 5;
+
+  google.protobuf.Struct global_state = 6;
+  google.protobuf.Struct node_output = 7;
 }
 
 message JobFailedResponse {
+  bool success = 1;
+}
+
+message JobSuspendedRequest {
+  string job_id = 1 [deprecated = true];
+  string suspended_step_id = 2;
+  string reason = 3;
+  document.models.v1.InfrastructureIdentity identity = 4;
+  map<string, string> metadata = 5;
+
+  google.protobuf.Struct global_state = 6;
+  google.protobuf.Struct node_output = 7;
+}
+
+message JobSuspendedResponse {
   bool success = 1;
 }
