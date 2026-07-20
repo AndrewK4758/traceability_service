@@ -8,6 +8,8 @@ import "models.proto";
 
 service SchemaRegistryService {
   rpc GetRulesForClassification(GetRulesRequest) returns (GetRulesResponse);
+  rpc GetAllRules(GetAllRulesRequest) returns (GetAllRulesResponse);
+  rpc UpdateRule(UpdateRuleRequest) returns (UpdateRuleResponse);
 }
 
 message GetRulesRequest {
@@ -20,4 +22,31 @@ message GetRulesResponse {
   string error_message = 2;
   string rules_text = 3;
   string json_schema = 4;
+}
+
+message AiRule {
+  int32 id = 1;
+  string rule_name = 2;
+  string target_entity_type = 3;
+  string instructions = 4;
+}
+
+message GetAllRulesRequest {
+  document.models.v1.InfrastructureIdentity identity = 1;
+}
+
+message GetAllRulesResponse {
+  bool success = 1;
+  string error_message = 2;
+  repeated AiRule rules = 3;
+}
+
+message UpdateRuleRequest {
+  document.models.v1.InfrastructureIdentity identity = 1;
+  AiRule rule = 2;
+}
+
+message UpdateRuleResponse {
+  bool success = 1;
+  string error_message = 2;
 }
