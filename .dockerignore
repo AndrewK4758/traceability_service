@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/data/
+**/temp/
+**/*.db
+**/*.db-journal
+.git/
+.idea/

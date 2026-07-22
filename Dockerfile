@@ -6,7 +6,7 @@ COPY . /app/traceability_service
 
 WORKDIR /app/traceability_service
 RUN dotnet restore
-RUN dotnet publish -c Release -o /out
+RUN dotnet publish TraceabilityService/TraceabilityService.csproj -c Release -o /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app

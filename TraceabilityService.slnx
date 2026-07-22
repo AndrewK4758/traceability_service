@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TraceabilityService.Tests/TraceabilityService.Tests.csproj" />
+  <Project Path="TraceabilityService/TraceabilityService.csproj" />
+</Solution>
