@@ -93,7 +93,7 @@ message ActionDefinition {
   string prompt = 3;
   repeated string rules = 4;
   reserved 5;
-  string orchestrator_primitive = 6;
+  reserved 6; // Deprecated orchestrator_primitive
   string target_worker_subject = 7;
 }
 
@@ -122,6 +122,16 @@ message WorkflowContext {
 
 message DocumentChunkingContract {
   string document_storage_uri = 1;
+
+  // Explicit workflow routing fields
+  string action_name_classify = 2;
+  string action_name_boundary = 3;
+
+  // Additional explicitly extracted metadata
+  string doc_type_corrupted = 4;
+  string doc_type_classified = 5;
+  string doc_type_chunked = 6;
+  string boundary_detection_prompt = 7;
 }
 
 message AiExtractionContract {

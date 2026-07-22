@@ -33,7 +33,7 @@ message CreateTaskRequest {
   document.models.v1.InfrastructureIdentity identity = 1;
   string step_name = 2;
   string failed_ai_output = 3;
-  string expected_schema = 4;
+  reserved 4; reserved "expected_schema";
   string prompt_instructions = 5;
   string error_message = 6;
   repeated string target_fields = 7;
@@ -59,7 +59,7 @@ message PendingTask {
   document.models.v1.InfrastructureIdentity identity = 2;
   string step_name = 3;
   string failed_ai_output = 4;
-  string expected_schema = 5;
+  reserved 5; reserved "expected_schema";
   string prompt_instructions = 6;
   string error_message = 7;
   repeated string target_fields = 8;

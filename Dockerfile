@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
 COPY --from=shared_protos . /app/shared_protos
+COPY --from=shared_utils . /app/shared_utils
 COPY . /app/traceability_service
 
 WORKDIR /app/traceability_service

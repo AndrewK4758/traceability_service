@@ -21,7 +21,7 @@ message GetRulesResponse {
   bool success = 1;
   string error_message = 2;
   string rules_text = 3;
-  string json_schema = 4;
+  reserved 4; reserved "json_schema";
 }
 
 message AiRule {

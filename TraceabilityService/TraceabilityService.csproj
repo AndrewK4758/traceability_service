@@ -19,7 +19,6 @@
     <Protobuf Include="..\..\shared_protos\orchestrator.proto" GrpcServices="Client,Server" ProtoRoot="..\..\shared_protos" />
     <Protobuf Include="..\..\shared_protos\models.proto" GrpcServices="Client,Server" ProtoRoot="..\..\shared_protos" />
     <Protobuf Include="..\..\shared_protos\processor.proto" GrpcServices="Client,Server" ProtoRoot="..\..\shared_protos" />
-    <Protobuf Include="..\..\shared_protos\buf\validate\validate.proto" GrpcServices="None" ProtoRoot="..\..\shared_protos" />
   </ItemGroup>
 
   <ItemGroup>
