@@ -15,7 +15,7 @@ service DocumentProcessingService {
 message ChunkDocumentRequest {
   document.models.v1.InfrastructureIdentity identity = 1;
   string step_id = 2;
-  string relative_file_path = 3;
+  document.models.v1.DocumentChunkingContract document_chunking = 3;
   document.orchestrator.v1.ExecuteWorkflowNodeRequest original_request = 4;
   bytes raw_file_bytes = 5;
 }

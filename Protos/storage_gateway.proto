@@ -8,11 +8,11 @@ import "models.proto";
 
 service StorageGatewayService {
     // Uploads a document via streaming bytes to the internal MinIO cluster.
-    // The C# Client must pass `tenant_id` and `app_id` in the gRPC headers (metadata).
+    // The C# Client passes `tenant_id` and `app_id` in the InfrastructureIdentity payload.
     rpc UploadDocument(stream UploadRequest) returns (UploadResponse);
 
     // Downloads a document via streaming bytes.
-    // The gateway verifies the requested URI against the `tenant_id` in the headers.
+    // The gateway verifies the requested URI against the InfrastructureIdentity payload.
     rpc DownloadDocument(DownloadRequest) returns (stream DownloadResponse);
 
     // Clears all temporary job data from MinIO for a specific job.

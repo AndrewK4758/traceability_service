@@ -17,6 +17,7 @@ message CheckCacheRequest {
   string text = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
   float threshold = 4;
+  map<string, string> metadata = 5;
 }
 
 message CheckCacheResponse {
@@ -30,6 +31,7 @@ message StoreExtractionRequest {
   string text = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
   string extracted_payload = 4;
+  map<string, string> metadata = 5;
 }
 
 message StoreExtractionResponse {
@@ -41,6 +43,7 @@ message SeedCacheRequest {
   string template_text = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
   string extracted_payload = 4;
+  map<string, string> metadata = 5;
 }
 
 message SeedCacheResponse {
@@ -57,6 +60,7 @@ message CacheStoreMessage {
 message CheckMetadataRequest {
   string collection_name = 1;
   document.models.v1.InfrastructureIdentity identity = 2;
+  map<string, string> metadata = 3;
 }
 
 message CheckMetadataResponse {

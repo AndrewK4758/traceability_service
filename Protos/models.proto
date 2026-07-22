@@ -21,22 +21,17 @@ enum ModelChoice {
   MODEL_CHOICE_OCR = 4;
 }
 
-enum OrchestratorPrimitive {
-  PRIMITIVE_UNSPECIFIED = 0;
-  PRIMITIVE_AI_STEP = 1;
-  PRIMITIVE_HUMAN_STEP = 2;
-  PRIMITIVE_ZERO_SHOT_CLASSIFICATION = 3;
-  PRIMITIVE_DOCUMENT_CHUNKING = 4;
-}
+
 
 message NodeConfiguration {
   string node_name = 1;
   string system_instructions = 2;
   string expected_schema = 3;
-  OrchestratorPrimitive primitive_type = 4;
+  reserved 4;
 
   CacheConfiguration cache = 5;
   HumanValidationConfiguration human_validation = 6;
+  string target_worker_subject = 7;
 }
 
 message CacheConfiguration {
@@ -68,7 +63,7 @@ message StepDefinition {
   string id = 1;
   string step_name = 2;
   string custom_instructions = 3;
-  string expected_schema = 4;
+  reserved 4;
   string reads_from_state_key = 5;
   string writes_to_state_key = 6;
   bool require_human_review = 7;
@@ -79,7 +74,7 @@ message StepDefinition {
   bool use_cache = 12; 
   string cache_key_input = 13; 
   CacheConfiguration cache_config = 14;
-  OrchestratorPrimitive step_primitive = 15;
+  reserved 15;
 }
 
 // Deprecated: Replaced by client-side dynamic routing
@@ -97,9 +92,9 @@ message ActionDefinition {
   string name = 2; 
   string prompt = 3;
   repeated string rules = 4;
-  string expected_output_schema = 5;
+  reserved 5;
   string orchestrator_primitive = 6;
-  OrchestratorPrimitive primitive_type = 7;
+  string target_worker_subject = 7;
 }
 
 message ActiveJobExecution {
@@ -123,4 +118,27 @@ message WorkflowContext {
   repeated ActionDefinition pending_actions = 8;
   int32 current_action_index = 9;
   google.protobuf.Struct action_state = 10;
+}
+
+message DocumentChunkingContract {
+  string document_storage_uri = 1;
+}
+
+message AiExtractionContract {
+  string system_instructions = 1;
+  reserved 2;
+  ModelChoice model_choice = 3;
+}
+
+message SemanticCacheContract {
+  bool enabled = 1;
+  string collection_name = 2;
+  string lookup_input = 3;
+  float confidence_threshold = 4;
+  map<string, string> metadata = 5;
+}
+
+message HumanValidationContract {
+  bool required = 1; 
+  bool bypass_fallback = 2;
 }

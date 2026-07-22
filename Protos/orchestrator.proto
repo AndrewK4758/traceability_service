@@ -23,7 +23,7 @@ service OrchestratorService {
 }
 
 message ExecuteWorkflowNodeRequest {
-  string job_id = 1 [deprecated = true];
+
   string step_id = 2; // The current node being executed
   string callback_address = 3; // Where to webhook the mutated state
 
@@ -33,6 +33,9 @@ message ExecuteWorkflowNodeRequest {
   document.models.v1.NodeConfiguration node_config = 6;
   
   document.models.v1.InfrastructureIdentity identity = 7;
+
+  // Explicit service contracts removed in favor of subject-based routing
+  reserved 8, 9, 10, 11;
 }
 
 message ExecuteWorkflowNodeResponse {
@@ -42,12 +45,12 @@ message ExecuteWorkflowNodeResponse {
 }
 
 message ListenRequest {
-  string job_id = 1 [deprecated = true];
+
   document.models.v1.InfrastructureIdentity identity = 2;
 }
 
 message ProgressUpdate {
-  string job_id = 1 [deprecated = true];
+
   string status = 2; // e.g., "CHUNKING", "PROCESSING", "STITCHING", "COMPLETE", "FAILED"
   string message = 3; // Detailed message, e.g., "Processing chunk 2 of 5"
   
@@ -58,7 +61,7 @@ message ProgressUpdate {
 }
 
 message ResumeJobRequest {
-  string job_id = 1 [deprecated = true];
+
   string corrected_json = 2;
   string step_id = 3;
   document.models.v1.InfrastructureIdentity identity = 4;
@@ -70,7 +73,7 @@ message ResumeJobResponse {
 }
 
 message PurgeSystemStateRequest {
-  string job_id = 1 [deprecated = true];         // Scopes the cancellation to a specific tenant/app
+         // Scopes the cancellation to a specific tenant/app
   bool purge_queues = 2;     // Explicit command to purge NATS JetStream queues
   document.models.v1.InfrastructureIdentity identity = 3;
 }
@@ -88,7 +91,7 @@ service OrchestratorCallbackService {
 }
 
 message NodeExecutionCompleteRequest {
-  string job_id = 1 [deprecated = true];
+
   string completed_step_id = 2;
   
   google.protobuf.Struct global_state = 3; // The mutated state 
@@ -106,7 +109,7 @@ message NodeExecutionCompleteResponse {
 }
 
 message JobFailedRequest {
-  string job_id = 1 [deprecated = true];
+
   string failed_step_id = 2;
   string error_message = 3;
   
@@ -122,7 +125,7 @@ message JobFailedResponse {
 }
 
 message JobSuspendedRequest {
-  string job_id = 1 [deprecated = true];
+
   string suspended_step_id = 2;
   string reason = 3;
   document.models.v1.InfrastructureIdentity identity = 4;
