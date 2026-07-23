@@ -15,6 +15,8 @@ public class TraceDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         
+        modelBuilder.HasDefaultSchema("traceability");
+        
         // Add indexes for fast querying based on gRPC needs
         modelBuilder.Entity<TraceEventRecord>()
             .HasIndex(t => new { t.TenantId, t.AppId, t.JobId });

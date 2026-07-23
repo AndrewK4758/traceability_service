@@ -12,10 +12,14 @@ var natsUrl = builder.Configuration["NATS_URL"] ?? "nats://localhost:4222";
 builder.Services.AddSingleton<INatsConnection>(provider => 
     new NatsConnection(new NatsOpts { Url = natsUrl }));
 
-// Add Entity Framework Core (SQLite for local dev/testing)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=traceability.db";
+// Add Entity Framework Core (PostgreSQL for infrastructural data)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Host=localhost;Database=artemis_ai;Username=ak;Password=ak";
 builder.Services.AddDbContext<TraceDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure();
+        npgsqlOptions.MigrationsHistoryTable(Microsoft.EntityFrameworkCore.Migrations.HistoryRepository.DefaultTableName, "traceability");
+    }));
 
 // Add Grpc with increased max message size
 var maxMessageSizeMb = builder.Configuration.GetValue<int?>("GRPC_MAX_MESSAGE_SIZE_MB") ?? 100;
@@ -37,12 +41,10 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.Migrate();
     } 
-    catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.Message.Contains("already exists")) 
+    catch (Exception ex) 
     {
-        // If the database was baked into a Docker image from a previous EnsureCreated() run
-        // without migrations, we gracefully wipe it and rebuild the schema from scratch.
-        db.Database.EnsureDeleted();
-        db.Database.Migrate();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
     }
 }
 
