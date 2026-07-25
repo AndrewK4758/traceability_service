@@ -103,7 +103,7 @@ public class NatsTraceSubscriber : BackgroundService
                         Status = status,
                         Message = root.TryGetProperty("error", out var err) && !string.IsNullOrEmpty(err.GetString()) ? err.GetString() : (root.TryGetProperty("message", out var m) ? m.GetString() : null),
                         Metadata = root.TryGetProperty("metadata", out var meta) ? meta.GetRawText() : (root.TryGetProperty("extracted_data", out var ext) ? ext.GetRawText() : null),
-                        Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) ? dt : DateTime.UtcNow
+                        Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) ? dt.ToUniversalTime() : DateTime.UtcNow
                     };
 
                     using var scope = _serviceProvider.CreateScope();
