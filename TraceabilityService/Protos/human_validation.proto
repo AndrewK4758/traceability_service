@@ -42,6 +42,7 @@ message CreateTaskRequest {
   string step_id = 10;
   string step_context_input = 11;
   map<string, string> metadata = 12;
+  string expected_json_schema = 13;
 }
 
 message CreateTaskResponse {
@@ -69,6 +70,7 @@ message PendingTask {
   string step_id = 12;
   string step_context_input = 13;
   map<string, string> metadata = 14;
+  string expected_json_schema = 15;
 }
 
 message GetPendingTasksResponse {

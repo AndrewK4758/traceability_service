@@ -56,6 +56,8 @@ message TraceEvent {
   string metadata = 11;
   string timestamp = 12;
   string document_type = 13;
+  string tenant_id = 14;
+  string app_id = 15;
 }
 
 message SaveJobStateRequest {

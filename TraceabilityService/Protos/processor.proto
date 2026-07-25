@@ -57,13 +57,15 @@ message PerformActionRequest {
 
 message PerformActionResponse {
   bool success = 1;
-  string error_message = 2;
+  reserved 2; reserved "error_message";
   
   // The raw JSON string returned by the LLM conforming to expected_schema in NodeConfiguration
   string action_result_json = 3;
   
   // Flag indicating if a failure is transient (should be retried) or permanent (fatal)
   bool is_transient_error = 4;
+
+  document.models.v1.ErrorContract error_contract = 5;
 }
 
 message GetAvailableModelsRequest {

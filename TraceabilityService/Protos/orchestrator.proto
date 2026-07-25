@@ -36,6 +36,15 @@ message ExecuteWorkflowNodeRequest {
 
   // Explicit service contracts removed in favor of subject-based routing
   reserved 8, 9, 10, 11;
+
+  // Tracks the number of times this node has been retried (e.g., due to JSON schema validation failures)
+  int32 inference_retry_count = 12;
+
+  // --- Service-Specific State Contracts ---
+  document.models.v1.AiServiceContract ai_service_contract = 13;
+  document.models.v1.DocServiceContract doc_service_contract = 14;
+  document.models.v1.CacheServiceContract cache_service_contract = 15;
+  document.models.v1.StorageServiceContract storage_service_contract = 16;
 }
 
 message ExecuteWorkflowNodeResponse {
@@ -98,10 +107,12 @@ message NodeExecutionCompleteRequest {
   google.protobuf.Struct node_output = 4;  // The isolated output for dynamic rule evaluation
   
   bool success = 5;
-  string error_message = 6;
+  reserved 6; reserved "error_message";
   
   document.models.v1.InfrastructureIdentity identity = 7;
   map<string, string> metadata = 8;
+  
+  document.models.v1.ErrorContract error_contract = 9;
 }
 
 message NodeExecutionCompleteResponse {
@@ -111,13 +122,15 @@ message NodeExecutionCompleteResponse {
 message JobFailedRequest {
 
   string failed_step_id = 2;
-  string error_message = 3;
+  reserved 3; reserved "error_message";
   
   document.models.v1.InfrastructureIdentity identity = 4;
   map<string, string> metadata = 5;
 
   google.protobuf.Struct global_state = 6;
   google.protobuf.Struct node_output = 7;
+  
+  document.models.v1.ErrorContract error_contract = 8;
 }
 
 message JobFailedResponse {
@@ -127,12 +140,14 @@ message JobFailedResponse {
 message JobSuspendedRequest {
 
   string suspended_step_id = 2;
-  string reason = 3;
+  reserved 3; reserved "reason";
   document.models.v1.InfrastructureIdentity identity = 4;
   map<string, string> metadata = 5;
 
   google.protobuf.Struct global_state = 6;
   google.protobuf.Struct node_output = 7;
+  
+  document.models.v1.ErrorContract error_contract = 8;
 }
 
 message JobSuspendedResponse {
