@@ -9,3 +9,5 @@ data/
 
 **/[Bb]in/
 **/[Oo]bj/
+bin/
+bin
