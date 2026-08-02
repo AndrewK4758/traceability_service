@@ -1,0 +1,169 @@
+13:47:01.810 |I|                               | :1                 | JetBrains dotCover Console Runner 2026.2.0.1. Build 20260729.224244 (linux-x64)
+13:47:01.814 |I|                               | :1                 | LogLevel: VERBOSE
+13:47:01.816 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_ROAMING_APPDATA_DIR (no PID suffix).
+13:47:01.816 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_ROAMING_APPDATA_DIR (no PID suffix) has no value.
+13:47:01.816 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_ROAMING_APPDATA_DIR_PID_00063D1D (PID-specific).
+13:47:01.816 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_ROAMING_APPDATA_DIR_PID_00063D1D (PID-specific) has no value.
+13:47:01.816 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.838 |I|                               | :1                 | Os.RuntimeId: linux-x64
+13:47:01.838 |I|                               | :1                 | Os.Version: 7.1.5.1
+13:47:01.838 |I|                               | :1                 | Runtime.Version: 10.0.10.0
+13:47:01.838 |I|                               | :1                 | Environment.Flags: 0
+13:47:01.838 |I| Main                          | :1                 | Command line: 
+/home/ak/.dotnet/tools/.store/jetbrains.dotcover.commandlinetools/2026.2.0.1/jetbrains.dotcover.commandlinetools/2026.2.0.1/tools/JetBrains.dotCover.Console.Runner.dll report --snapshot-source ./coverage/report.dcvr --xml-report-output ./coverage/CoverageReport.xml --log-file ./coverage/dotcover.log
+13:47:01.840 |I| Main                          | :1                 | Parsed arguments: 
+report
+--snapshot-source
+./coverage/report.dcvr
+--xml-report-output
+./coverage/CoverageReport.xml
+
+13:47:01.848 |V| JetDispatcher                 | :1                 | Thread :1 pwned.
+13:47:01.849 |V| JetDispatcher                 | :1                 | Thread :1 created a marshaller.
+13:47:01.871 |V| ShellLocks                    | :1                 | ShellLocks.Task.Scheduler.Implementation is <NULL>. Use $JetBrains.Application.Threading.Tasks.Scheduler.JetScheduler
+13:47:01.871 |V| JetScheduler                  | JetPool Manager:7  | Thread 'JetPool Manager' started
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE (no PID suffix).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE (no PID suffix) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE_PID_00063D1D (PID-specific).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE_PID_00063D1D (PID-specific) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG (no PID suffix).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG (no PID suffix) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_PID_00063D1D (PID-specific).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_PID_00063D1D (PID-specific) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE_PID_00063D1D (PID-specific).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE_PID_00063D1D (PID-specific) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00063D1D (PID-specific).
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00063D1D (PID-specific) has no value.
+13:47:01.876 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE (no PID suffix).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE (no PID suffix) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE_PID_00063D1D (PID-specific).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE_PID_00063D1D (PID-specific) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG (no PID suffix).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG (no PID suffix) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_PID_00063D1D (PID-specific).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_PID_00063D1D (PID-specific) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE_PID_00063D1D (PID-specific).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE_PID_00063D1D (PID-specific) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00063D1D (PID-specific).
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00063D1D (PID-specific) has no value.
+13:47:01.877 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature UseAttachHelper: False
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature UseWinRtHelper: False
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature SuppressProcessListPrefetch: False
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature SuppressWinRtPackagePrefetch: False
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature ForcePrefetch: False
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature ForceProcessMetrics: False
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature SuppressProcessMetrics: False
+13:47:01.891 |V| ServiceAgentProvider          | :1                 | Agent feature UseClrMetaHostApi: False
+13:47:01.968 |I| WorkspaceSnapshotManager      | :1                 | OpenSnapshotAsync. IndexFile='./coverage/report.dcvr', WaitForCoverageTree=True
+13:47:01.969 |V| ThreadManagementUnit(S)       | :1                 | Short Tasks: starting executor JetPool(S) #1
+13:47:01.970 |V| ThreadManagementUnit(S)       | :1                 | Short Tasks: starting executor JetPool(S) #2
+13:47:01.970 |V| WorkspaceSnapshotManager      | :1                 | Opening snapshot storage 'coverage\report.dcvr'...
+13:47:01.971 |V| ThreadManagementUnit(S)       | JetPool Manager:7  | All threads are busy. Adding new thread to the pool
+13:47:01.971 |V| ThreadManagementUnit(S)       | JetPool Manager:7  | Short Tasks: starting executor JetPool(S) #3
+13:47:01.971 |V| CoverageSnapshotManager       | :1                 | Opening snapshot 'coverage\report.dcvr'...
+13:47:01.971 |V| JetScheduler                  | JetPool(S) #2:13   | Thread 'JetPool(S) #2' started execution in unit 'Short Tasks'. #allExecutors=2, #freeExecutors=0
+13:47:01.971 |V| JetScheduler                  | JetPool(S) #1:12   | Thread 'JetPool(S) #1' started execution in unit 'Short Tasks'. #allExecutors=2, #freeExecutors=0
+13:47:01.971 |V| JetScheduler                  | JetPool(S) #3:14   | Thread 'JetPool(S) #3' started execution in unit 'Short Tasks'. #allExecutors=3, #freeExecutors=0
+13:47:01.975 |V| MachineIdManager              | :11                | MachineId retrieved
+13:47:01.977 |V| CoverageSnapshotManager       | :1                 | Snapshot 'coverage\report.dcvr' opened
+13:47:01.977 |V| WorkspaceSnapshotManager      | :1                 | Snapshot storage 'coverage\report.dcvr' opened
+13:47:01.977 |V| WorkspaceSnapshotManager      | :1                 | Building snapshot container...
+13:49:51.222 |I|                               | :1                 | JetBrains dotCover Console Runner 2026.2.0.1. Build 20260729.224244 (linux-x64)
+13:49:51.228 |I|                               | :1                 | LogLevel: VERBOSE
+13:49:51.229 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_ROAMING_APPDATA_DIR (no PID suffix).
+13:49:51.229 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_ROAMING_APPDATA_DIR (no PID suffix) has no value.
+13:49:51.229 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_ROAMING_APPDATA_DIR_PID_00064E45 (PID-specific).
+13:49:51.229 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_ROAMING_APPDATA_DIR_PID_00064E45 (PID-specific) has no value.
+13:49:51.229 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.250 |I|                               | :1                 | Os.RuntimeId: linux-x64
+13:49:51.251 |I|                               | :1                 | Os.Version: 7.1.5.1
+13:49:51.251 |I|                               | :1                 | Runtime.Version: 10.0.10.0
+13:49:51.251 |I|                               | :1                 | Environment.Flags: 0
+13:49:51.251 |I| Main                          | :1                 | Command line: 
+/home/ak/.dotnet/tools/.store/jetbrains.dotcover.commandlinetools/2026.2.0.1/jetbrains.dotcover.commandlinetools/2026.2.0.1/tools/JetBrains.dotCover.Console.Runner.dll report --snapshot-source ./coverage/report.dcvr --xml-report-output ./coverage/CoverageReport.xml --log-file ./coverage/dotcover.log
+13:49:51.253 |I| Main                          | :1                 | Parsed arguments: 
+report
+--snapshot-source
+./coverage/report.dcvr
+--xml-report-output
+./coverage/CoverageReport.xml
+
+13:49:51.260 |V| JetDispatcher                 | :1                 | Thread :1 pwned.
+13:49:51.261 |V| JetDispatcher                 | :1                 | Thread :1 created a marshaller.
+13:49:51.279 |V| ShellLocks                    | :1                 | ShellLocks.Task.Scheduler.Implementation is <NULL>. Use $JetBrains.Application.Threading.Tasks.Scheduler.JetScheduler
+13:49:51.279 |V| JetScheduler                  | JetPool Manager:7  | Thread 'JetPool Manager' started
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE (no PID suffix).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE (no PID suffix) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE_PID_00064E45 (PID-specific).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE_PID_00064E45 (PID-specific) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG (no PID suffix).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG (no PID suffix) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_PID_00064E45 (PID-specific).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_PID_00064E45 (PID-specific) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE_PID_00064E45 (PID-specific).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE_PID_00064E45 (PID-specific) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00064E45 (PID-specific).
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00064E45 (PID-specific) has no value.
+13:49:51.283 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE (no PID suffix).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE (no PID suffix) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_CULTURE_PID_00064E45 (PID-specific).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_CULTURE_PID_00064E45 (PID-specific) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG (no PID suffix).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG (no PID suffix) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_PID_00064E45 (PID-specific).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_PID_00064E45 (PID-specific) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE (no PID suffix) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_I18N_DEBUG_LOWLINE_PID_00064E45 (PID-specific).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_I18N_DEBUG_LOWLINE_PID_00064E45 (PID-specific) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS (no PID suffix) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | Reading environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00064E45 (PID-specific).
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | The environment variable JET_BACKEND_LOCALIZATION_FOLDERS_PID_00064E45 (PID-specific) has no value.
+13:49:51.284 |V| EnvironmentVariablesUtil      | :1                 | No environment variables for additional packages are set.
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature UseAttachHelper: False
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature UseWinRtHelper: False
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature SuppressProcessListPrefetch: False
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature SuppressWinRtPackagePrefetch: False
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature ForcePrefetch: False
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature ForceProcessMetrics: False
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature SuppressProcessMetrics: False
+13:49:51.296 |V| ServiceAgentProvider          | :1                 | Agent feature UseClrMetaHostApi: False
+13:49:51.381 |I| WorkspaceSnapshotManager      | :1                 | OpenSnapshotAsync. IndexFile='./coverage/report.dcvr', WaitForCoverageTree=True
+13:49:51.383 |V| ThreadManagementUnit(S)       | :1                 | Short Tasks: starting executor JetPool(S) #1
+13:49:51.383 |V| ThreadManagementUnit(S)       | :1                 | Short Tasks: starting executor JetPool(S) #2
+13:49:51.384 |V| JetScheduler                  | JetPool(S) #1:12   | Thread 'JetPool(S) #1' started execution in unit 'Short Tasks'. #allExecutors=2, #freeExecutors=0
+13:49:51.384 |V| JetScheduler                  | JetPool(S) #2:13   | Thread 'JetPool(S) #2' started execution in unit 'Short Tasks'. #allExecutors=2, #freeExecutors=0
+13:49:51.384 |V| WorkspaceSnapshotManager      | :1                 | Opening snapshot storage 'coverage\report.dcvr'...
+13:49:51.385 |V| CoverageSnapshotManager       | :1                 | Opening snapshot 'coverage\report.dcvr'...
+13:49:51.392 |V| MachineIdManager              | :11                | MachineId retrieved
+13:49:51.397 |V| CoverageSnapshotManager       | :1                 | Snapshot 'coverage\report.dcvr' opened
+13:49:51.397 |V| WorkspaceSnapshotManager      | :1                 | Snapshot storage 'coverage\report.dcvr' opened
+13:49:51.397 |V| WorkspaceSnapshotManager      | :1                 | Building snapshot container...
