@@ -11,3 +11,4 @@ data/
 **/[Oo]bj/
 bin/
 bin
+/coverage/report.dcvr
