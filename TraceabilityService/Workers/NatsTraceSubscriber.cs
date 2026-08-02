@@ -6,6 +6,8 @@ using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
 using TraceabilityService.Data;
 using TraceabilityService.Models;
+using Mployee.Dotnet.Sdk.Payloads;
+using Mployee.Dotnet.Sdk.Payloads.Workflow;
 
 namespace TraceabilityService.Workers;
 
@@ -23,6 +25,79 @@ public class NatsTraceSubscriber : BackgroundService
         _logger = logger;
         _serviceProvider = serviceProvider;
         _natsConnection = natsConnection;
+    }
+
+    public static TraceEventRecord ParseTraceEventJson(string traceJson)
+    {
+        using var doc = JsonDocument.Parse(traceJson);
+        var root = doc.RootElement;
+
+        if (!root.TryGetProperty("event_id", out var eid) || string.IsNullOrWhiteSpace(eid.GetString()))
+        {
+            throw new InvalidOperationException($"Trace event payload is missing mandatory property 'event_id'. JSON: {traceJson}");
+        }
+        var eventId = eid.GetString()!;
+
+        if (!root.TryGetProperty("job_id", out var jid) || string.IsNullOrWhiteSpace(jid.GetString()))
+        {
+            throw new InvalidOperationException($"Trace event payload is missing mandatory property 'job_id'. JSON: {traceJson}");
+        }
+        var jobId = jid.GetString()!;
+
+        string action;
+        if (root.TryGetProperty("job_action", out var ja) && !string.IsNullOrWhiteSpace(ja.GetString()))
+        {
+            action = ja.GetString()!;
+        }
+        else if (root.TryGetProperty("event_type", out var et) && !string.IsNullOrWhiteSpace(et.GetString()) && et.GetString()!.Contains('.'))
+        {
+            action = et.GetString()!.Split('.', 2)[0].ToUpper();
+        }
+        else if (root.TryGetProperty("action", out var act) && !string.IsNullOrWhiteSpace(act.GetString()))
+        {
+            action = act.GetString()!;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Trace event payload is missing mandatory action/job_action/event_type property. JSON: {traceJson}");
+        }
+
+        string status;
+        if (root.TryGetProperty("status", out var st) && !string.IsNullOrWhiteSpace(st.GetString()))
+        {
+            status = st.GetString()!.ToUpper();
+        }
+        else if (root.TryGetProperty("event_type", out var et2) && !string.IsNullOrWhiteSpace(et2.GetString()) && et2.GetString()!.Contains('.'))
+        {
+            status = et2.GetString()!.Split('.', 2)[1].ToUpper();
+        }
+        else
+        {
+            throw new InvalidOperationException($"Trace event payload is missing mandatory status/event_type property. JSON: {traceJson}");
+        }
+
+        return new TraceEventRecord
+        {
+            EventId = eventId,
+            JobId = jobId,
+            ChunkId = root.TryGetProperty("chunk_id", out var ci) && ci.ValueKind != JsonValueKind.Null ? ci.GetString() : null,
+            CorrelationId = root.TryGetProperty("correlation_id", out var cor) && cor.ValueKind != JsonValueKind.Null ? cor.GetString() : null,
+            TenantId = root.TryGetProperty("tenant_id", out var t) && t.ValueKind != JsonValueKind.Null ? t.GetString() : null,
+            UserId = root.TryGetProperty("user_id", out var u) && u.ValueKind != JsonValueKind.Null ? u.GetString() : null,
+            AppId = root.TryGetProperty("app_id", out var a) && a.ValueKind != JsonValueKind.Null ? a.GetString() : null,
+            DocumentType = root.TryGetProperty("document_type", out var dtType) && dtType.ValueKind != JsonValueKind.Null ? dtType.GetString() : null,
+            Action = action,
+            Status = status,
+            Message = root.TryGetProperty("error", out var err) && err.ValueKind != JsonValueKind.Null && !string.IsNullOrWhiteSpace(err.GetString()) 
+                ? err.GetString() 
+                : (root.TryGetProperty("message", out var m) && m.ValueKind != JsonValueKind.Null ? m.GetString() : null),
+            Metadata = root.TryGetProperty("metadata", out var meta) && meta.ValueKind != JsonValueKind.Null 
+                ? meta.GetRawText() 
+                : (root.TryGetProperty("extracted_data", out var ext) && ext.ValueKind != JsonValueKind.Null ? ext.GetRawText() : null),
+            Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) 
+                ? dt.ToUniversalTime() 
+                : DateTime.UtcNow
+        };
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -71,40 +146,7 @@ public class NatsTraceSubscriber : BackgroundService
                     var traceJson = System.Text.Encoding.UTF8.GetString(msg.Data);
                     _logger.LogDebug("Received trace event: {Json}", traceJson);
 
-                    // Parse JSON payload dynamically or via JsonDocument (since the incoming JSON matches NATS payload structure)
-                    using var doc = JsonDocument.Parse(traceJson);
-                    var root = doc.RootElement;
-                    
-                    var eventTypeStr = root.TryGetProperty("event_type", out var et) ? et.GetString() ?? "" : "";
-                    var action = "UNKNOWN";
-                    var status = "UNKNOWN";
-                    
-                    if (eventTypeStr.Contains('.'))
-                    {
-                        var parts = eventTypeStr.Split('.', 2);
-                        action = parts[0].ToUpper();
-                        status = parts[1].ToUpper();
-                    }
-
-                    var stage = root.TryGetProperty("stage", out var s) ? s.GetString() : "UNKNOWN";
-                    var jobAction = root.TryGetProperty("job_action", out var ja) ? ja.GetString() ?? "UNKNOWN" : "UNKNOWN";
-
-                    var eventRecord = new TraceEventRecord
-                    {
-                        EventId = root.TryGetProperty("event_id", out var eid) ? eid.GetString() ?? Guid.NewGuid().ToString() : Guid.NewGuid().ToString(),
-                        JobId = root.TryGetProperty("job_id", out var jid) ? jid.GetString() ?? "unknown" : "unknown",
-                        ChunkId = root.TryGetProperty("chunk_id", out var ci) ? ci.GetString() : null,
-                        CorrelationId = root.TryGetProperty("correlation_id", out var cor) ? cor.GetString() : null,
-                        TenantId = root.TryGetProperty("tenant_id", out var t) ? t.GetString() : null,
-                        UserId = root.TryGetProperty("user_id", out var u) ? u.GetString() : null,
-                        AppId = root.TryGetProperty("app_id", out var a) ? a.GetString() : null,
-                        DocumentType = root.TryGetProperty("document_type", out var dtType) ? dtType.GetString() : null,
-                        Action = jobAction,
-                        Status = status,
-                        Message = root.TryGetProperty("error", out var err) && !string.IsNullOrEmpty(err.GetString()) ? err.GetString() : (root.TryGetProperty("message", out var m) ? m.GetString() : null),
-                        Metadata = root.TryGetProperty("metadata", out var meta) ? meta.GetRawText() : (root.TryGetProperty("extracted_data", out var ext) ? ext.GetRawText() : null),
-                        Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) ? dt.ToUniversalTime() : DateTime.UtcNow
-                    };
+                    var eventRecord = ParseTraceEventJson(traceJson);
 
                     using var scope = _serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<TraceDbContext>();

@@ -14,15 +14,14 @@
     <None Remove="TraceabilityService.Tests\**" />
   </ItemGroup>
   
+
+
   <ItemGroup>
-    <Protobuf Include="..\..\shared_protos\traceability.proto" GrpcServices="Server" ProtoRoot="..\..\shared_protos" />
-    <Protobuf Include="..\..\shared_protos\orchestrator.proto" GrpcServices="Client,Server" ProtoRoot="..\..\shared_protos" />
-    <Protobuf Include="..\..\shared_protos\models.proto" GrpcServices="Client,Server" ProtoRoot="..\..\shared_protos" />
-    <Protobuf Include="..\..\shared_protos\processor.proto" GrpcServices="Client,Server" ProtoRoot="..\..\shared_protos" />
+    <ProjectReference Include="..\..\Mployee.Dotnet.Sdk\Mployee.Dotnet.Sdk.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.64.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0-preview.1.25081.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

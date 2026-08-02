@@ -5,6 +5,8 @@ using TraceabilityService.Data;
 using TraceabilityService.Protos;
 using Google.Protobuf;
 using Document.Orchestrator.V1;
+using Mployee.Dotnet.Sdk.Payloads;
+using Mployee.Dotnet.Sdk.Payloads.Workflow;
 
 namespace TraceabilityService.Services;
 
@@ -188,19 +190,6 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         }
     }
 
-    private string DetermineOverallStatus(List<Models.TraceEventRecord> events)
-    {
-        if (events.Count == 0) return "UNKNOWN";
-        
-        var hasFailed = events.Any(e => e.Status.Equals("FAILED", StringComparison.OrdinalIgnoreCase));
-        if (hasFailed) return "FAILED";
-
-        var hasCompleted = events.Any(e => e.Action == "JOB" && e.Status.Equals("COMPLETED", StringComparison.OrdinalIgnoreCase));
-        if (hasCompleted) return "COMPLETED";
-
-        return "IN_PROGRESS";
-    }
-
     private TraceEvent MapToProto(Models.TraceEventRecord record)
     {
         #pragma warning disable CS0618
@@ -211,11 +200,13 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
             ResourceId = record.ChunkId ?? string.Empty,
             CorrelationId = record.CorrelationId ?? string.Empty,
             EventType = record.Action ?? string.Empty,
-            StepId = record.AppId ?? string.Empty, // mapping app id to step id as fallback
+            StepId = string.Empty,
             Message = record.Message ?? string.Empty,
             Metadata = record.Metadata ?? string.Empty,
             Timestamp = record.Timestamp.ToString("O"),
-            DocumentType = record.DocumentType ?? string.Empty
+            DocumentType = record.DocumentType ?? string.Empty,
+            TenantId = record.TenantId ?? string.Empty,
+            AppId = record.AppId ?? string.Empty
         };
         #pragma warning restore CS0618
     }
