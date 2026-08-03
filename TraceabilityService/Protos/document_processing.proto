@@ -25,6 +25,7 @@ message ProcessedDocument {
   string relative_file_path = 2;
   int32 page_count = 3;
   bytes raw_file_bytes = 4;
+  bool is_scanned = 5;
 }
 
 message ChunkingTraceEvent {
