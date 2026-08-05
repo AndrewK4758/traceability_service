@@ -3,6 +3,8 @@ package semanticcache.v1;
 option go_package = "github.com/AndrewK4758/shared_protos";
 
 import "models.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/any.proto";
 
 service SemanticCacheService {
   rpc CheckCache(CheckCacheRequest) returns (CheckCacheResponse);
@@ -14,11 +16,13 @@ service SemanticCacheService {
 }
 
 message CheckCacheRequest {
-  string collection_name = 1;
-  string text = 2;
-  document.models.v1.InfrastructureIdentity identity = 3;
-  float threshold = 4;
-  map<string, string> metadata = 5;
+  bool enabled = 1;
+  string collection_name = 2;
+  bool cache_hit = 4;
+  float confidence = 5;
+  google.protobuf.Any embedding_lookup = 6;
+  google.protobuf.Struct metadata_lookup = 7;
+  document.models.v1.InfrastructureIdentity identity = 8;
 }
 
 message CheckCacheResponse {
@@ -29,10 +33,10 @@ message CheckCacheResponse {
 
 message StoreExtractionRequest {
   string collection_name = 1;
-  string text = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
   string extracted_payload = 4;
-  map<string, string> metadata = 5;
+  google.protobuf.Struct metadata = 5;
+  google.protobuf.Any embedding_payload = 6;
 }
 
 message StoreExtractionResponse {
@@ -41,10 +45,10 @@ message StoreExtractionResponse {
 
 message SeedCacheRequest {
   string collection_name = 1;
-  string template_text = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
   string extracted_payload = 4;
-  map<string, string> metadata = 5;
+  google.protobuf.Struct metadata = 5;
+  google.protobuf.Any embedding_payload = 6;
 }
 
 message SeedCacheResponse {
@@ -61,7 +65,7 @@ message CacheStoreMessage {
 message CheckMetadataRequest {
   string collection_name = 1;
   document.models.v1.InfrastructureIdentity identity = 2;
-  map<string, string> metadata = 3;
+  google.protobuf.Struct metadata = 3;
 }
 
 message CheckMetadataResponse {
@@ -70,7 +74,7 @@ message CheckMetadataResponse {
 
 message QueryBlankDocumentRequest {
   string collection_name = 1;
-  string text_representation = 2; // Extracted layout metadata or URL to blank image
+  google.protobuf.Any embedding_lookup = 2; // Extracted layout metadata or URL to blank image
   document.models.v1.InfrastructureIdentity identity = 3;
   float confidence_threshold = 4;
 }
@@ -83,7 +87,7 @@ message QueryBlankDocumentResponse {
 
 message RegisterBlankDocumentRequest {
   string collection_name = 1;
-  string text_representation = 2;
+  google.protobuf.Any embedding_payload = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
 }
 

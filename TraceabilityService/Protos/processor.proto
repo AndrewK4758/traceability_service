@@ -5,6 +5,7 @@ package document.processor.v1;
 option go_package = "github.com/AndrewK4758/shared_protos";
 option csharp_namespace = "Document.Processor.V1";
 
+import "google/protobuf/struct.proto";
 import "models.proto";
 import "orchestrator.proto";
 
@@ -45,7 +46,7 @@ message PerformActionRequest {
   // Optional raw binary input (e.g. image, pdf chunk, file content)
   bytes input_bytes = 1;
   
-  document.orchestrator.v1.ExecuteWorkflowNodeRequest context = 2;
+  document.orchestrator.v1.ExecuteTaskRequest context = 2;
   document.models.v1.ActionDefinition current_action = 3;
   
   document.models.v1.ModelChoice model_choice = 4;
@@ -59,8 +60,8 @@ message PerformActionResponse {
   bool success = 1;
   reserved 2; reserved "error_message";
   
-  // The raw JSON string returned by the LLM conforming to expected_schema in NodeConfiguration
-  string action_result_json = 3;
+  // The structured payload returned by the LLM conforming to expected_schema in NodeConfiguration
+  google.protobuf.Struct action_result = 3;
   
   // Flag indicating if a failure is transient (should be retried) or permanent (fatal)
   bool is_transient_error = 4;

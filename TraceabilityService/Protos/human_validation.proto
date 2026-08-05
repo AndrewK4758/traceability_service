@@ -5,6 +5,7 @@ package document.validation.v1;
 option go_package = "github.com/AndrewK4758/shared_protos";
 
 import "models.proto";
+import "google/protobuf/struct.proto";
 
 service HumanValidationService {
   // Orchestrator or Client registers a task needing human validation
@@ -33,16 +34,16 @@ message CreateTaskRequest {
   document.models.v1.InfrastructureIdentity identity = 1;
   string step_name = 2;
   string failed_ai_output = 3;
-  reserved 4; reserved "expected_schema";
+  reserved 4;
   string prompt_instructions = 5;
   string error_message = 6;
   repeated string target_fields = 7;
-  string global_state_json = 8;
+  document.models.v1.GlobalState global_state = 8;
   reserved 9; reserved "job_name";
   string step_id = 10;
   string step_context_input = 11;
   map<string, string> metadata = 12;
-  string expected_json_schema = 13;
+  google.protobuf.Struct expected_schema = 13;
 }
 
 message CreateTaskResponse {
@@ -60,17 +61,17 @@ message PendingTask {
   document.models.v1.InfrastructureIdentity identity = 2;
   string step_name = 3;
   string failed_ai_output = 4;
-  reserved 5; reserved "expected_schema";
+  reserved 5;
   string prompt_instructions = 6;
   string error_message = 7;
   repeated string target_fields = 8;
   string status = 9; // e.g., "PENDING", "RESOLVED"
-  string global_state_json = 10;
+  document.models.v1.GlobalState global_state = 10;
   reserved 11; reserved "job_name";
   string step_id = 12;
   string step_context_input = 13;
   map<string, string> metadata = 14;
-  string expected_json_schema = 15;
+  google.protobuf.Struct expected_schema = 15;
 }
 
 message GetPendingTasksResponse {
@@ -79,7 +80,7 @@ message GetPendingTasksResponse {
 
 message SubmitCorrectionRequest {
   string task_id = 1;
-  string corrected_json = 2;
+  google.protobuf.Struct corrected = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
 }
 

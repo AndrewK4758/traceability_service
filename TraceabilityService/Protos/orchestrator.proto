@@ -5,73 +5,42 @@ package document.orchestrator.v1;
 option go_package = "github.com/AndrewK4758/shared_protos";
 option csharp_namespace = "Document.Orchestrator.V1";
 
-import "models.proto";
 import "google/protobuf/struct.proto";
+import "models.proto";
 
 service OrchestratorService {
-  // Unified endpoint replacing SubmitJob, StartJob, and SubmitStep
-  rpc ExecuteWorkflowNode(ExecuteWorkflowNodeRequest) returns (ExecuteWorkflowNodeResponse);
-
-  // Client listens to this Server Stream to get real-time progress of their JobID
+  rpc ExecuteTask(ExecuteTaskRequest) returns (ExecuteTaskResponse);
   rpc ListenForProgress(ListenRequest) returns (stream ProgressUpdate);
-
-  // Resume a job after human validation has corrected the AI output
   rpc ResumeJob(ResumeJobRequest) returns (ResumeJobResponse);
-
-  // Commands the Orchestrator to cancel jobs and optionally purge streams.
   rpc PurgeSystemState(PurgeSystemStateRequest) returns (PurgeSystemStateResponse);
 }
 
-message ExecuteWorkflowNodeRequest {
-
-  string step_id = 2; // The current node being executed
-  string callback_address = 3; // Where to webhook the mutated state
-
-  google.protobuf.Struct global_state = 4; // The single source of truth payload
-  map<string, string> metadata = 5; // e.g. correlation_id
-
-  document.models.v1.NodeConfiguration node_config = 6;
-  
-  document.models.v1.InfrastructureIdentity identity = 7;
-
-  // Explicit service contracts removed in favor of subject-based routing
-  reserved 8, 9, 10, 11;
-
-  // Tracks the number of times this node has been retried (e.g., due to JSON schema validation failures)
-  int32 inference_retry_count = 12;
-
-  // --- Service-Specific State Contracts ---
-  document.models.v1.AiServiceContract ai_service_contract = 13;
-  document.models.v1.DocServiceContract doc_service_contract = 14;
-  document.models.v1.CacheServiceContract cache_service_contract = 15;
-  document.models.v1.StorageServiceContract storage_service_contract = 16;
+message ExecuteTaskRequest {
+  document.models.v1.InfrastructureIdentity identity = 1;
+  string task_subject = 2;
+  google.protobuf.Struct payload = 3;
+  string step_id = 4;
 }
 
-message ExecuteWorkflowNodeResponse {
+message ExecuteTaskResponse {
   bool success = 1;
   string message = 2;
   string step_id = 3;
 }
 
 message ListenRequest {
-
   document.models.v1.InfrastructureIdentity identity = 2;
 }
 
 message ProgressUpdate {
-
-  string status = 2; // e.g., "CHUNKING", "PROCESSING", "STITCHING", "COMPLETE", "FAILED"
-  string message = 3; // Detailed message, e.g., "Processing chunk 2 of 5"
-  
-  // Only populated when status == "COMPLETE"
-  string final_results_json = 4;
-  
+  string status = 2;
+  string message = 3;
+  google.protobuf.Struct final_results = 4;
   document.models.v1.InfrastructureIdentity identity = 5;
 }
 
 message ResumeJobRequest {
-
-  string corrected_json = 2;
+  google.protobuf.Struct corrected = 2;
   string step_id = 3;
   document.models.v1.InfrastructureIdentity identity = 4;
 }
@@ -82,8 +51,7 @@ message ResumeJobResponse {
 }
 
 message PurgeSystemStateRequest {
-         // Scopes the cancellation to a specific tenant/app
-  bool purge_queues = 2;     // Explicit command to purge NATS JetStream queues
+  bool purge_queues = 2;
   document.models.v1.InfrastructureIdentity identity = 3;
 }
 
@@ -94,60 +62,17 @@ message PurgeSystemStateResponse {
 }
 
 service OrchestratorCallbackService {
-  rpc OnNodeExecutionComplete(stream NodeExecutionCompleteRequest) returns (stream NodeExecutionCompleteResponse);
-  rpc OnJobFailed(JobFailedRequest) returns (JobFailedResponse);
-  rpc OnJobSuspended(JobSuspendedRequest) returns (JobSuspendedResponse);
+  rpc OnTaskExecutionComplete(stream ExecuteTaskRequest) returns (stream TaskExecutionCompleteResponse);
+  rpc OnJobFailed(ExecuteTaskRequest) returns (JobFailedResponse);
+  rpc OnJobSuspended(ExecuteTaskRequest) returns (JobSuspendedResponse);
 }
 
-message NodeExecutionCompleteRequest {
-
-  string completed_step_id = 2;
-  
-  google.protobuf.Struct global_state = 3; // The mutated state 
-  google.protobuf.Struct node_output = 4;  // The isolated output for dynamic rule evaluation
-  
-  bool success = 5;
-  reserved 6; reserved "error_message";
-  
-  document.models.v1.InfrastructureIdentity identity = 7;
-  map<string, string> metadata = 8;
-  
-  document.models.v1.ErrorContract error_contract = 9;
-}
-
-message NodeExecutionCompleteResponse {
+message TaskExecutionCompleteResponse {
   bool success = 1; 
-}
-
-message JobFailedRequest {
-
-  string failed_step_id = 2;
-  reserved 3; reserved "error_message";
-  
-  document.models.v1.InfrastructureIdentity identity = 4;
-  map<string, string> metadata = 5;
-
-  google.protobuf.Struct global_state = 6;
-  google.protobuf.Struct node_output = 7;
-  
-  document.models.v1.ErrorContract error_contract = 8;
 }
 
 message JobFailedResponse {
   bool success = 1;
-}
-
-message JobSuspendedRequest {
-
-  string suspended_step_id = 2;
-  reserved 3; reserved "reason";
-  document.models.v1.InfrastructureIdentity identity = 4;
-  map<string, string> metadata = 5;
-
-  google.protobuf.Struct global_state = 6;
-  google.protobuf.Struct node_output = 7;
-  
-  document.models.v1.ErrorContract error_contract = 8;
 }
 
 message JobSuspendedResponse {

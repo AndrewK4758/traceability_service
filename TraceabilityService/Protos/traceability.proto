@@ -62,7 +62,7 @@ message TraceEvent {
 
 message SaveJobStateRequest {
   reserved 1; reserved "job_id";
-  document.orchestrator.v1.ExecuteWorkflowNodeRequest original_request = 2; // Full config
+  document.orchestrator.v1.ExecuteTaskRequest original_request = 2; // Full config
   string status = 3; // "PENDING", "COMPLETED", "FAILED"
   document.models.v1.InfrastructureIdentity identity = 4;
 }
@@ -81,7 +81,7 @@ message GetPendingJobsResponse {
 
 message JobStateRecord {
   reserved 1; reserved "job_id";
-  document.orchestrator.v1.ExecuteWorkflowNodeRequest original_request = 2;
+  document.orchestrator.v1.ExecuteTaskRequest original_request = 2;
   string status = 3;
   document.models.v1.InfrastructureIdentity identity = 4;
 }

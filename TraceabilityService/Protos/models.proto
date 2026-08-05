@@ -5,6 +5,7 @@ package document.models.v1;
 option go_package = "github.com/AndrewK4758/shared_protos";
 option csharp_namespace = "Document.Models.V1";
 
+import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -32,78 +33,54 @@ enum ModelChoice {
 
 
 
-message NodeConfiguration {
-  string node_name = 1;
-  string system_instructions = 2;
-  string expected_schema = 3;
-  reserved 4;
-
-  CacheConfiguration cache = 5;
-  HumanValidationConfiguration human_validation = 6;
-  string target_worker_subject = 7;
+message StorageContract {
+  string document_uri = 1;
+  string document_path = 2;
+  int32 page_count = 3;
 }
 
-message CacheConfiguration {
+message DocumentProcessorContract {
+  string action_name_classify = 1;
+  string action_name_boundary = 2;
+  string doc_type_corrupted = 3;
+  string doc_type_classified = 4;
+  string doc_type_chunked = 5;
+  string boundary_detection_prompt = 6;
+  int32 max_pages_before_split = 7;
+  int32 sliding_window_size = 8;
+}
+
+message CacheContract {
   bool enabled = 1;
   string collection_name = 2;
-  string lookup_input = 3;
-  float confidence_threshold = 4;
-  map<string, string> metadata = 5;
+  bool cache_hit = 4;
+  float confidence = 5;
+  google.protobuf.Any embedding_lookup = 6;
+  google.protobuf.Struct metadata_lookup = 7;
 }
 
-message HumanValidationConfiguration {
-  bool required = 1; 
+message HumanValidationContract {
+  bool required = 1;
   bool bypass_fallback = 2;
 }
 
-// Deprecated: Replaced by NodeConfiguration but kept for backwards compatibility in external databases
-message JobDefinition {
-  string id = 1;
-  int32 name = 2; 
-  string description = 3;
-  string global_instructions = 4;
-  bool is_active = 5;
-  string initial_step_id = 6;
-  string system_context = 7;
-}
-
-// Deprecated: Replaced by NodeConfiguration but kept for backwards compatibility in external databases
-message StepDefinition {
-  string id = 1;
-  string step_name = 2;
-  string custom_instructions = 3;
-  reserved 4;
-  string reads_from_state_key = 5;
-  string writes_to_state_key = 6;
-  bool require_human_review = 7;
-  bool bypass_human_fallback = 8;
-  string dynamic_rule_table_name = 9;
-  string dynamic_rule_state_key = 10;
-  string context_input = 11;
-  bool use_cache = 12; 
-  string cache_key_input = 13; 
-  CacheConfiguration cache_config = 14;
-  reserved 15;
-}
-
-// Deprecated: Replaced by client-side dynamic routing
-message JobWorkflowEdge {
-  int32 id = 1;
-  string job_definition_id = 2;
-  string source_step_id = 3;
-  string condition_state_key = 4;
-  string condition_match_value = 5;
-  string target_step_id = 6;
+message NodeConfiguration {
+  string node_name = 1;
+  string system_instructions = 2;
+  string expected_schema = 3 [deprecated = true];
+  string target_worker_subject = 4;
+  string state_output_key = 5;
+  string inference_input_key = 6;
+  google.protobuf.Struct expected_schema_struct = 7;
 }
 
 message ActionDefinition {
   string id = 1;
-  string name = 2; 
+  string name = 2;
   string prompt = 3;
   repeated string rules = 4;
   reserved 5;
-  reserved 6; // Deprecated orchestrator_primitive
-  string target_worker_subject = 7;
+  string target_worker_subject = 6;
 }
 
 message ActiveJobExecution {
@@ -115,58 +92,11 @@ message ActiveJobExecution {
   string updated_at = 6;
 }
 
-// Deprecated: Replaced by ExecuteWorkflowNodeRequest
-message WorkflowContext {
-  string job_id = 1;
-  map<string, string> metadata = 2;
-  ActiveJobExecution active_execution = 3;
-  JobDefinition job_definition = 4;
-  reserved 5;
-  google.protobuf.Struct global_state = 6;
-  int32 current_step_index = 7;
-  repeated ActionDefinition pending_actions = 8;
-  int32 current_action_index = 9;
-  google.protobuf.Struct action_state = 10;
-}
-
-message DocumentChunkingContract {
-  string document_storage_uri = 1;
-
-  // Explicit workflow routing fields
-  string action_name_classify = 2;
-  string action_name_boundary = 3;
-
-  // Additional explicitly extracted metadata
-  string doc_type_corrupted = 4;
-  string doc_type_classified = 5;
-  string doc_type_chunked = 6;
-  string boundary_detection_prompt = 7;
-}
-
-message AiExtractionContract {
-  string system_instructions = 1;
-  reserved 2;
-  ModelChoice model_choice = 3;
-}
-
-message SemanticCacheContract {
-  bool enabled = 1;
-  string collection_name = 2;
-  string lookup_input = 3;
-  float confidence_threshold = 4;
-  map<string, string> metadata = 5;
-}
-
-message HumanValidationContract {
-  bool required = 1; 
-  bool bypass_fallback = 2;
-}
-
 enum WorkflowState {
   WORKFLOW_STATE_UNSPECIFIED = 0;
   WORKFLOW_STATE_PENDING = 1;
   WORKFLOW_STATE_PROCESSING = 2;
-  WORKFLOW_STATE_SUSPENDED = 3; 
+  WORKFLOW_STATE_SUSPENDED = 3;
   WORKFLOW_STATE_COMPLETED = 4;
   WORKFLOW_STATE_FAILED = 5;
   WORKFLOW_STATE_CANCELED = 6;
@@ -175,22 +105,14 @@ enum WorkflowState {
 message GenericWorkflowState {
   WorkflowState current_state = 1;
   string state_reason = 2;
-  google.protobuf.Struct state_payload = 3; 
+  google.protobuf.Struct state_payload = 3;
   google.protobuf.Timestamp last_updated = 4;
+  InfrastructureIdentity identity = 5;
 }
 
-// --- Service-Specific Root Contracts ---
 
-message AiServiceContract {
-}
 
-message DocServiceContract {
-  DocumentChunkingContract document_chunking = 1;
-}
-
-message CacheServiceContract {
-}
-
-message StorageServiceContract {
-  string document_storage_uri = 1;
+message GlobalState {
+  google.protobuf.Struct functional = 1;
+  google.protobuf.Struct non_functional = 2;
 }
