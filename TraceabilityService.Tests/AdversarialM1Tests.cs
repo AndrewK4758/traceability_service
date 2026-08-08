@@ -44,7 +44,8 @@ public class AdversarialM1Tests
         {
             "event_id": "e-999",
             "job_id": "j-888",
-            "event_type": "document.processed"
+            "event_type": "document.processed",
+            "timestamp": "2023-01-01T00:00:00Z"
         }
         """;
 
@@ -65,7 +66,8 @@ public class AdversarialM1Tests
             "status": "FAILED",
             "error": "Critical system failure",
             "message": "Secondary message",
-            "extracted_data": {"key": "value"}
+            "extracted_data": {"key": "value"},
+            "timestamp": "2023-01-01T00:00:00Z"
         }
         """;
 
@@ -84,9 +86,12 @@ public class AdversarialM1Tests
         context.TraceEvents.Add(new TraceEventRecord
         {
             EventId = "evt_adv_1",
-            TenantId = "TENANT_ALPHA",
-            AppId = "APP_BETA",
-            JobId = "JOB_GAMMA",
+            Identity = new InfrastructureIdentity
+            {
+                TenantId = "TENANT_ALPHA",
+                AppId = "APP_BETA",
+                JobId = "JOB_GAMMA"
+            },
             Action = "INGEST",
             Status = "COMPLETED",
             Timestamp = DateTime.UtcNow
@@ -126,9 +131,12 @@ public class AdversarialM1Tests
         context.TraceEvents.Add(new TraceEventRecord
         {
             EventId = "evt_empty_1",
-            TenantId = "",
-            AppId = "",
-            JobId = "JOB_EMPTY",
+            Identity = new InfrastructureIdentity
+            {
+                TenantId = "",
+                AppId = "",
+                JobId = "JOB_EMPTY"
+            },
             Action = "PROCESS",
             Status = "COMPLETED",
             Timestamp = DateTime.UtcNow

@@ -1,102 +1,128 @@
-
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
 using TraceabilityService.Data;
 using TraceabilityService.Models;
-using Mployee.Dotnet.Sdk.Payloads;
-using Mployee.Dotnet.Sdk.Payloads.Workflow;
+using Npgsql;
 
 namespace TraceabilityService.Workers;
+
+public class TraceEventDto
+{
+    [JsonPropertyName("event_id")]
+    public string? EventId { get; set; }
+    
+    [JsonPropertyName("job_id")]
+    public string? JobId { get; set; }
+
+    [JsonPropertyName("chunk_id")]
+    public string? ChunkId { get; set; }
+
+    [JsonPropertyName("correlation_id")]
+    public string? CorrelationId { get; set; }
+
+    [JsonPropertyName("tenant_id")]
+    public string? TenantId { get; set; }
+
+    [JsonPropertyName("app_id")]
+    public string? AppId { get; set; }
+
+    [JsonPropertyName("user_id")]
+    public string? UserId { get; set; }
+
+    [JsonPropertyName("document_type")]
+    public string? DocumentType { get; set; }
+
+    [JsonPropertyName("job_action")]
+    public string? JobAction { get; set; }
+
+    [JsonPropertyName("event_type")]
+    public string? EventType { get; set; }
+
+    [JsonPropertyName("action")]
+    public string? Action { get; set; }
+
+    [JsonPropertyName("status")]
+    public string? Status { get; set; }
+
+    [JsonPropertyName("error")]
+    public string? Error { get; set; }
+
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
+
+    [JsonPropertyName("metadata")]
+    public JsonElement? Metadata { get; set; }
+
+    [JsonPropertyName("extracted_data")]
+    public JsonElement? ExtractedData { get; set; }
+
+    [JsonPropertyName("timestamp")]
+    public DateTime? Timestamp { get; set; }
+}
 
 public class NatsTraceSubscriber : BackgroundService
 {
     private readonly ILogger<NatsTraceSubscriber> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly INatsConnection _natsConnection;
+    private readonly IConfiguration _configuration;
 
     public NatsTraceSubscriber(
         ILogger<NatsTraceSubscriber> logger, 
         IServiceProvider serviceProvider,
-        INatsConnection natsConnection)
+        INatsConnection natsConnection,
+        IConfiguration configuration)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _natsConnection = natsConnection;
+        _configuration = configuration;
     }
 
     public static TraceEventRecord ParseTraceEventJson(string traceJson)
     {
-        using var doc = JsonDocument.Parse(traceJson);
-        var root = doc.RootElement;
+        var dto = JsonSerializer.Deserialize<TraceEventDto>(traceJson);
+        if (dto == null) throw new InvalidOperationException($"Failed to deserialize trace event payload: {traceJson}");
 
-        if (!root.TryGetProperty("event_id", out var eid) || string.IsNullOrWhiteSpace(eid.GetString()))
-        {
-            throw new InvalidOperationException($"Trace event payload is missing mandatory property 'event_id'. JSON: {traceJson}");
-        }
-        var eventId = eid.GetString()!;
+        if (string.IsNullOrWhiteSpace(dto.EventId)) throw new InvalidOperationException($"Trace event payload is missing mandatory property 'event_id'. JSON: {traceJson}");
+        if (string.IsNullOrWhiteSpace(dto.JobId)) throw new InvalidOperationException($"Trace event payload is missing mandatory property 'job_id'. JSON: {traceJson}");
 
-        if (!root.TryGetProperty("job_id", out var jid) || string.IsNullOrWhiteSpace(jid.GetString()))
-        {
-            throw new InvalidOperationException($"Trace event payload is missing mandatory property 'job_id'. JSON: {traceJson}");
-        }
-        var jobId = jid.GetString()!;
+        string action = !string.IsNullOrWhiteSpace(dto.JobAction) ? dto.JobAction! :
+                        (!string.IsNullOrWhiteSpace(dto.EventType) && dto.EventType!.Contains('.')) ? dto.EventType.Split('.', 2)[0].ToUpper() :
+                        !string.IsNullOrWhiteSpace(dto.Action) ? dto.Action! :
+                        throw new InvalidOperationException($"Trace event payload is missing mandatory action property. JSON: {traceJson}");
 
-        string action;
-        if (root.TryGetProperty("job_action", out var ja) && !string.IsNullOrWhiteSpace(ja.GetString()))
-        {
-            action = ja.GetString()!;
-        }
-        else if (root.TryGetProperty("event_type", out var et) && !string.IsNullOrWhiteSpace(et.GetString()) && et.GetString()!.Contains('.'))
-        {
-            action = et.GetString()!.Split('.', 2)[0].ToUpper();
-        }
-        else if (root.TryGetProperty("action", out var act) && !string.IsNullOrWhiteSpace(act.GetString()))
-        {
-            action = act.GetString()!;
-        }
-        else
-        {
-            throw new InvalidOperationException($"Trace event payload is missing mandatory action/job_action/event_type property. JSON: {traceJson}");
-        }
+        string status = !string.IsNullOrWhiteSpace(dto.Status) ? dto.Status!.ToUpper() :
+                        (!string.IsNullOrWhiteSpace(dto.EventType) && dto.EventType!.Contains('.')) ? dto.EventType.Split('.', 2)[1].ToUpper() :
+                        throw new InvalidOperationException($"Trace event payload is missing mandatory status property. JSON: {traceJson}");
 
-        string status;
-        if (root.TryGetProperty("status", out var st) && !string.IsNullOrWhiteSpace(st.GetString()))
-        {
-            status = st.GetString()!.ToUpper();
-        }
-        else if (root.TryGetProperty("event_type", out var et2) && !string.IsNullOrWhiteSpace(et2.GetString()) && et2.GetString()!.Contains('.'))
-        {
-            status = et2.GetString()!.Split('.', 2)[1].ToUpper();
-        }
-        else
-        {
-            throw new InvalidOperationException($"Trace event payload is missing mandatory status/event_type property. JSON: {traceJson}");
-        }
+        if (!dto.Timestamp.HasValue) throw new InvalidOperationException($"Trace event payload is missing mandatory timestamp property. JSON: {traceJson}");
+
+        string? metaString = dto.Metadata.HasValue && dto.Metadata.Value.ValueKind != JsonValueKind.Null && dto.Metadata.Value.ValueKind != JsonValueKind.Undefined ? dto.Metadata.Value.GetRawText() :
+                             dto.ExtractedData.HasValue && dto.ExtractedData.Value.ValueKind != JsonValueKind.Null && dto.ExtractedData.Value.ValueKind != JsonValueKind.Undefined ? dto.ExtractedData.Value.GetRawText() : null;
 
         return new TraceEventRecord
         {
-            EventId = eventId,
-            JobId = jobId,
-            ChunkId = root.TryGetProperty("chunk_id", out var ci) && ci.ValueKind != JsonValueKind.Null ? ci.GetString() : null,
-            CorrelationId = root.TryGetProperty("correlation_id", out var cor) && cor.ValueKind != JsonValueKind.Null ? cor.GetString() : null,
-            TenantId = root.TryGetProperty("tenant_id", out var t) && t.ValueKind != JsonValueKind.Null ? t.GetString() : null,
-            UserId = root.TryGetProperty("user_id", out var u) && u.ValueKind != JsonValueKind.Null ? u.GetString() : null,
-            AppId = root.TryGetProperty("app_id", out var a) && a.ValueKind != JsonValueKind.Null ? a.GetString() : null,
-            DocumentType = root.TryGetProperty("document_type", out var dtType) && dtType.ValueKind != JsonValueKind.Null ? dtType.GetString() : null,
+            EventId = dto.EventId,
+            Identity = new InfrastructureIdentity
+            {
+                TenantId = dto.TenantId ?? string.Empty,
+                AppId = dto.AppId ?? string.Empty,
+                JobId = dto.JobId
+            },
+            ChunkId = dto.ChunkId,
+            CorrelationId = dto.CorrelationId,
+            UserId = dto.UserId,
+            DocumentType = dto.DocumentType,
             Action = action,
             Status = status,
-            Message = root.TryGetProperty("error", out var err) && err.ValueKind != JsonValueKind.Null && !string.IsNullOrWhiteSpace(err.GetString()) 
-                ? err.GetString() 
-                : (root.TryGetProperty("message", out var m) && m.ValueKind != JsonValueKind.Null ? m.GetString() : null),
-            Metadata = root.TryGetProperty("metadata", out var meta) && meta.ValueKind != JsonValueKind.Null 
-                ? meta.GetRawText() 
-                : (root.TryGetProperty("extracted_data", out var ext) && ext.ValueKind != JsonValueKind.Null ? ext.GetRawText() : null),
-            Timestamp = root.TryGetProperty("timestamp", out var ts) && ts.TryGetDateTime(out var dt) 
-                ? dt.ToUniversalTime() 
-                : DateTime.UtcNow
+            Message = !string.IsNullOrWhiteSpace(dto.Error) ? dto.Error : dto.Message,
+            Metadata = metaString,
+            Timestamp = dto.Timestamp.Value.ToUniversalTime()
         };
     }
 
@@ -104,27 +130,19 @@ public class NatsTraceSubscriber : BackgroundService
     {
         _logger.LogInformation("Traceability NATS Subscriber starting up on JetStream...");
         
+        var streamName = _configuration["Nats:TraceEventsStreamName"] ?? "TRACE_EVENTS";
+        var consumerName = _configuration["Nats:TraceEventsConsumerName"] ?? "TraceabilityService_Consumer";
+        var filterSubject = _configuration["Nats:TraceEventsFilterSubject"] ?? "trace.>";
+
         try
         {
             var js = new NatsJSContext(_natsConnection);
             
-            // Ensure the stream exists before creating a consumer
-            try
+            var consumer = await js.CreateOrUpdateConsumerAsync(streamName, new ConsumerConfig
             {
-                await js.CreateStreamAsync(new StreamConfig("TRACE_EVENTS", new[] { "trace.>" }), cancellationToken: stoppingToken);
-                _logger.LogInformation("Ensured TRACE_EVENTS stream exists.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("CreateStreamAsync failed (might already exist or permission issue): {Message}", ex.Message);
-            }
-
-            // Create the consumer if it doesn't exist
-            var consumer = await js.CreateOrUpdateConsumerAsync("TRACE_EVENTS", new ConsumerConfig
-            {
-                Name = "TraceabilityService_Consumer",
-                DurableName = "TraceabilityService_Consumer",
-                FilterSubject = "trace.>",
+                Name = consumerName,
+                DurableName = consumerName,
+                FilterSubject = filterSubject,
                 AckPolicy = ConsumerConfigAckPolicy.Explicit,
                 DeliverPolicy = ConsumerConfigDeliverPolicy.All,
                 MaxDeliver = 3,
@@ -151,19 +169,15 @@ public class NatsTraceSubscriber : BackgroundService
                     using var scope = _serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<TraceDbContext>();
                     
-                    var exists = await dbContext.TraceEvents.AnyAsync(e => e.EventId == eventRecord.EventId, stoppingToken);
-                    if (!exists)
-                    {
-                        dbContext.TraceEvents.Add(eventRecord);
-                        await dbContext.SaveChangesAsync(stoppingToken);
-                    }
+                    dbContext.TraceEvents.Add(eventRecord);
+                    await dbContext.SaveChangesAsync(stoppingToken);
 
                     // Acknowledge the message upon successful processing
                     await msg.AckAsync(cancellationToken: stoppingToken);
                 }
-                catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == PostgresErrorCodes.UniqueViolation)
                 {
-                    _logger.LogWarning(ex, "DbUpdateException processing trace event (possible duplicate). Acking message.");
+                    _logger.LogWarning(ex, "Duplicate trace event detected (Unique constraint violation). Acking message.");
                     await msg.AckAsync(cancellationToken: stoppingToken);
                 }
                 catch (Exception ex)

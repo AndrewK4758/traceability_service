@@ -29,11 +29,11 @@ public class TraceabilityQueryServiceImplTests
         
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "1", TenantId = "T1", AppId = "A1", JobId = "job_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
+            EventId = "1", Identity = new InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_1" }, Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
         });
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "2", TenantId = "T1", AppId = "A1", JobId = "job_1", Action = "JOB", Status = "COMPLETED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
+            EventId = "2", Identity = new InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_1" }, Action = "JOB", Status = "COMPLETED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
         });
         await context.SaveChangesAsync();
 
@@ -56,11 +56,11 @@ public class TraceabilityQueryServiceImplTests
         
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "1", TenantId = "T1", AppId = "A1", JobId = "job_fail", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
+            EventId = "1", Identity = new InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_fail" }, Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
         });
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "2", TenantId = "T1", AppId = "A1", JobId = "job_fail", Action = "CHUNK", Status = "FAILED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
+            EventId = "2", Identity = new InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_fail" }, Action = "CHUNK", Status = "FAILED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
         });
         await context.SaveChangesAsync();
 
@@ -80,11 +80,11 @@ public class TraceabilityQueryServiceImplTests
         
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "1", TenantId = "T1", AppId = "A1", JobId = "job_1", CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
+            EventId = "1", Identity = new InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_1" }, CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow 
         });
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "2", TenantId = "T1", AppId = "A1", JobId = "job_2", CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
+            EventId = "2", Identity = new InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job_2" }, CorrelationId = "corr_1", Action = "JOB", Status = "STARTED", Timestamp = DateTime.UtcNow.AddMinutes(1) 
         });
         await context.SaveChangesAsync();
 
@@ -106,7 +106,7 @@ public class TraceabilityQueryServiceImplTests
         using var context = new TraceDbContext(options);
         context.TraceEvents.Add(new TraceEventRecord 
         { 
-            EventId = "evt_100", TenantId = "tenant_test", AppId = "app_test", JobId = "job_test", Action = "PROCESS", Status = "COMPLETED", Timestamp = DateTime.UtcNow 
+            EventId = "evt_100", Identity = new InfrastructureIdentity { TenantId = "tenant_test", AppId = "app_test", JobId = "job_test" }, Action = "PROCESS", Status = "COMPLETED", Timestamp = DateTime.UtcNow 
         });
         context.SaveChanges();
 
@@ -131,9 +131,7 @@ public class TraceabilityQueryServiceImplTests
         var record = new TraceEventRecord 
         { 
             EventId = "evt_nulls", 
-            TenantId = "T1", 
-            AppId = "A1", 
-            JobId = "job1", 
+            Identity = new InfrastructureIdentity { TenantId = "T1", AppId = "A1", JobId = "job1" }, 
             ChunkId = null,
             CorrelationId = null,
             Action = "JOB", 
@@ -179,16 +177,17 @@ public class TraceabilityQueryServiceImplTests
             "tenant_id": "tenant-abc",
             "app_id": "app-xyz",
             "job_action": "PROCESS_DOC",
-            "status": "COMPLETED"
+            "status": "COMPLETED",
+            "timestamp": "2023-01-01T00:00:00Z"
         }
         """;
 
         var record = TraceabilityService.Workers.NatsTraceSubscriber.ParseTraceEventJson(json);
 
         Assert.Equal("e-123", record.EventId);
-        Assert.Equal("j-456", record.JobId);
-        Assert.Equal("tenant-abc", record.TenantId);
-        Assert.Equal("app-xyz", record.AppId);
+        Assert.Equal("j-456", record.Identity.JobId);
+        Assert.Equal("tenant-abc", record.Identity.TenantId);
+        Assert.Equal("app-xyz", record.Identity.AppId);
         Assert.Equal("PROCESS_DOC", record.Action);
         Assert.Equal("COMPLETED", record.Status);
     }
@@ -240,7 +239,8 @@ public class TraceabilityQueryServiceImplTests
         {
             "event_id": "e-123",
             "job_id": "j-456",
-            "event_type": "DOCUMENT_PROCESSING.STARTED"
+            "event_type": "DOCUMENT_PROCESSING.STARTED",
+            "timestamp": "2023-01-01T00:00:00Z"
         }
         """;
 
@@ -267,7 +267,8 @@ public class TraceabilityQueryServiceImplTests
             "document_type": null,
             "error": null,
             "message": null,
-            "metadata": null
+            "metadata": null,
+            "timestamp": "2023-01-01T00:00:00Z"
         }
         """;
 
@@ -275,9 +276,9 @@ public class TraceabilityQueryServiceImplTests
 
         Assert.Null(record.ChunkId);
         Assert.Null(record.CorrelationId);
-        Assert.Null(record.TenantId);
+        Assert.Empty(record.Identity.TenantId);
+        Assert.Empty(record.Identity.AppId);
         Assert.Null(record.UserId);
-        Assert.Null(record.AppId);
         Assert.Null(record.DocumentType);
         Assert.Null(record.Message);
         Assert.Null(record.Metadata);

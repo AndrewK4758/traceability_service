@@ -1,7 +1,7 @@
-
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TraceabilityService.Data;
+using TraceabilityService.Models;
 using TraceabilityService.Protos;
 using Google.Protobuf;
 using Document.Orchestrator.V1;
@@ -25,14 +25,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
     {
         _logger.LogInformation("Received GetJobTrace request for Job ID: {JobId}", request.Identity.JobId);
 
-        var cancellationToken = context?.CancellationToken ?? CancellationToken.None;
-
         var events = await _dbContext.TraceEvents
-            .Where(e => e.TenantId == request.Identity.TenantId 
-                     && e.AppId == request.Identity.AppId 
-                     && e.JobId == request.Identity.JobId)
+            .Where(e => e.Identity.TenantId == request.Identity.TenantId 
+                     && e.Identity.AppId == request.Identity.AppId 
+                     && e.Identity.JobId == request.Identity.JobId)
             .OrderBy(e => e.Timestamp)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(context?.CancellationToken ?? default);
 
         var response = new GetJobTraceResponse();
 
@@ -48,14 +46,12 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
     {
         _logger.LogInformation("Received GetCorrelationTrace request for Correlation ID: {CorrelationId}", request.CorrelationId);
 
-        var cancellationToken = context?.CancellationToken ?? CancellationToken.None;
-
         var events = await _dbContext.TraceEvents
-            .Where(e => e.TenantId == request.Identity.TenantId 
-                     && e.AppId == request.Identity.AppId 
+            .Where(e => e.Identity.TenantId == request.Identity.TenantId 
+                     && e.Identity.AppId == request.Identity.AppId 
                      && e.CorrelationId == request.CorrelationId)
             .OrderBy(e => e.Timestamp)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(context?.CancellationToken ?? default);
 
         var response = new GetCorrelationTraceResponse();
 
@@ -70,59 +66,60 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
     public override async Task<SaveJobStateResponse> SaveJobState(SaveJobStateRequest request, ServerCallContext context)
     {
         _logger.LogInformation("Saving job state for TenantId: {TenantId} | AppId: {AppId} | JobId: {JobId} with Status: {Status}", request.Identity.TenantId, request.Identity.AppId, request.Identity.JobId, request.Status);
-        var cancellationToken = context.CancellationToken;
+        
+        if (!Enum.TryParse<Models.JobStatus>(request.Status, true, out var parsedStatus))
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid status: {request.Status}"));
+        }
 
-        int retries = 3;
-        while (retries > 0)
+        var rowsAffected = await _dbContext.JobStates
+            .Where(x => x.Identity.TenantId == request.Identity.TenantId && x.Identity.AppId == request.Identity.AppId && x.Identity.JobId == request.Identity.JobId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(b => b.Status, parsedStatus)
+                .SetProperty(b => b.OriginalRequestBytes, request.OriginalRequest != null ? request.OriginalRequest.ToByteArray() : Array.Empty<byte>()), 
+                context.CancellationToken);
+
+        if (rowsAffected == 0)
         {
             try
             {
-                var existing = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.TenantId == request.Identity.TenantId && x.AppId == request.Identity.AppId && x.JobId == request.Identity.JobId, cancellationToken);
-                if (existing == null)
+                var newState = new Models.JobStateEntity
                 {
-                    existing = new Models.JobStateEntity
-                    {
-                        TenantId = request.Identity.TenantId,
-                        AppId = request.Identity.AppId,
-                        JobId = request.Identity.JobId,
-                        Status = request.Status,
-                        OriginalRequestBytes = request.OriginalRequest?.ToByteArray() ?? Array.Empty<byte>()
-                    };
-                    _dbContext.JobStates.Add(existing);
-                }
-                else
-                {
-                    existing.Status = request.Status;
-                    if (request.OriginalRequest != null)
-                    {
-                        existing.OriginalRequestBytes = request.OriginalRequest.ToByteArray();
-                    }
-                }
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                return new SaveJobStateResponse { Success = true };
+                    Identity = new InfrastructureIdentity 
+                    { 
+                        TenantId = request.Identity.TenantId, 
+                        AppId = request.Identity.AppId, 
+                        JobId = request.Identity.JobId 
+                    },
+                    Status = parsedStatus,
+                    OriginalRequestBytes = request.OriginalRequest?.ToByteArray() ?? Array.Empty<byte>()
+                };
+                _dbContext.JobStates.Add(newState);
+                await _dbContext.SaveChangesAsync(context.CancellationToken);
             }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
+            catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == Npgsql.PostgresErrorCodes.UniqueViolation)
             {
-                _logger.LogWarning("Concurrency conflict on SaveJobState for {JobId}, retrying...", request.Identity.JobId);
-                // Detach everything to reset the DbContext state before retrying
+                _logger.LogWarning("Concurrency conflict on SaveJobState for {JobId}, retrying update...", request.Identity.JobId);
                 _dbContext.ChangeTracker.Clear();
-                retries--;
-                if (retries == 0) throw;
+                await _dbContext.JobStates
+                    .Where(x => x.Identity.TenantId == request.Identity.TenantId && x.Identity.AppId == request.Identity.AppId && x.Identity.JobId == request.Identity.JobId)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(b => b.Status, parsedStatus)
+                        .SetProperty(b => b.OriginalRequestBytes, request.OriginalRequest != null ? request.OriginalRequest.ToByteArray() : Array.Empty<byte>()), 
+                        context.CancellationToken);
             }
         }
-        
-        return new SaveJobStateResponse { Success = false };
+
+        return new SaveJobStateResponse { Success = true };
     }
 
     public override async Task<GetPendingJobsResponse> GetPendingJobs(GetPendingJobsRequest request, ServerCallContext context)
     {
         _logger.LogInformation("Retrieving pending jobs");
 
-        var cancellationToken = context.CancellationToken;
         var pendingEntities = await _dbContext.JobStates
-            .Where(x => x.Status == "PENDING")
-            .ToListAsync(cancellationToken);
+            .Where(x => x.Status == Models.JobStatus.PENDING)
+            .ToListAsync(context.CancellationToken);
 
         var response = new GetPendingJobsResponse();
 
@@ -135,17 +132,18 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
                 {
                     Identity = new Document.Models.V1.InfrastructureIdentity
                     {
-                        TenantId = entity.TenantId,
-                        AppId = entity.AppId,
-                        JobId = entity.JobId
+                        TenantId = entity.Identity.TenantId,
+                        AppId = entity.Identity.AppId,
+                        JobId = entity.Identity.JobId
                     },
-                    Status = entity.Status,
+                    Status = entity.Status.ToString(),
                     OriginalRequest = originalReq
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to deserialize pending job {JobId}", entity.JobId);
+                _logger.LogError(ex, "Failed to deserialize pending job {JobId}", entity.Identity.JobId);
+                throw new RpcException(new Status(StatusCode.DataLoss, $"Corrupted state for job {entity.Identity.JobId}"));
             }
         }
 
@@ -156,8 +154,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
     {
         _logger.LogInformation("Retrieving job state for TenantId: {TenantId} | AppId: {AppId} | JobId: {JobId}", request.Identity.TenantId, request.Identity.AppId, request.Identity.JobId);
 
-        var cancellationToken = context.CancellationToken;
-        var entity = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.TenantId == request.Identity.TenantId && x.AppId == request.Identity.AppId && x.JobId == request.Identity.JobId, cancellationToken);
+        var entity = await _dbContext.JobStates.FirstOrDefaultAsync(x => x.Identity.TenantId == request.Identity.TenantId && x.Identity.AppId == request.Identity.AppId && x.Identity.JobId == request.Identity.JobId, context.CancellationToken);
 
         if (entity == null)
         {
@@ -174,19 +171,19 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
                 {
                     Identity = new Document.Models.V1.InfrastructureIdentity
                     {
-                        TenantId = entity.TenantId,
-                        AppId = entity.AppId,
-                        JobId = entity.JobId
+                        TenantId = entity.Identity.TenantId,
+                        AppId = entity.Identity.AppId,
+                        JobId = entity.Identity.JobId
                     },
-                    Status = entity.Status,
+                    Status = entity.Status.ToString(),
                     OriginalRequest = originalReq
                 }
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to deserialize job state for {JobId}", entity.JobId);
-            return new GetJobStateResponse { Found = false };
+            _logger.LogError(ex, "Failed to deserialize job state for {JobId}", entity.Identity.JobId);
+            throw new RpcException(new Status(StatusCode.DataLoss, $"Corrupted state for job {entity.Identity.JobId}"));
         }
     }
 
@@ -196,7 +193,7 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
         return new TraceEvent
         {
             Id = record.EventId,
-            JobId = record.JobId ?? string.Empty,
+            JobId = record.Identity.JobId,
             ResourceId = record.ChunkId ?? string.Empty,
             CorrelationId = record.CorrelationId ?? string.Empty,
             EventType = record.Action ?? string.Empty,
@@ -205,8 +202,8 @@ public class TraceabilityQueryServiceImpl : TraceabilityQuery.TraceabilityQueryB
             Metadata = record.Metadata ?? string.Empty,
             Timestamp = record.Timestamp.ToString("O"),
             DocumentType = record.DocumentType ?? string.Empty,
-            TenantId = record.TenantId ?? string.Empty,
-            AppId = record.AppId ?? string.Empty
+            TenantId = record.Identity.TenantId,
+            AppId = record.Identity.AppId
         };
         #pragma warning restore CS0618
     }

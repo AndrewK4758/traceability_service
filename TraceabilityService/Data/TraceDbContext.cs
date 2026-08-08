@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 using TraceabilityService.Models;
 
@@ -20,20 +19,36 @@ public class TraceDbContext : DbContext
             modelBuilder.HasDefaultSchema("traceability");
         }
         
-        // Add indexes for fast querying based on gRPC needs
+        modelBuilder.Entity<TraceEventRecord>().OwnsOne(t => t.Identity, id => 
+        {
+            id.Property(p => p.TenantId).HasColumnName("TenantId");
+            id.Property(p => p.AppId).HasColumnName("AppId");
+            id.Property(p => p.JobId).HasColumnName("JobId");
+            id.HasIndex(p => new { p.TenantId, p.AppId, p.JobId });
+        });
+
         modelBuilder.Entity<TraceEventRecord>()
-            .HasIndex(t => new { t.TenantId, t.AppId, t.JobId });
-            
-        modelBuilder.Entity<TraceEventRecord>()
-            .HasIndex(t => new { t.TenantId, t.AppId, t.CorrelationId });
+            .HasIndex(t => new { t.CorrelationId });
             
         modelBuilder.Entity<TraceEventRecord>()
             .HasIndex(t => t.Timestamp);
 
         modelBuilder.Entity<JobStateEntity>()
-            .HasKey(e => new { e.TenantId, e.AppId, e.JobId });
+            .HasKey(e => e.Id);
+
+        modelBuilder.Entity<JobStateEntity>().OwnsOne(e => e.Identity, id =>
+        {
+            id.Property(p => p.TenantId).HasColumnName("TenantId");
+            id.Property(p => p.AppId).HasColumnName("AppId");
+            id.Property(p => p.JobId).HasColumnName("JobId");
+            id.HasIndex(p => new { p.TenantId, p.AppId, p.JobId }).IsUnique();
+        });
 
         modelBuilder.Entity<JobStateEntity>()
             .HasIndex(t => t.Status);
+            
+        modelBuilder.Entity<JobStateEntity>()
+            .Property(e => e.Status)
+            .HasConversion<string>();
     }
 }
