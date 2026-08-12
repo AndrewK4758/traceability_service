@@ -20,6 +20,8 @@ message ExecuteTaskRequest {
   string task_subject = 2;
   google.protobuf.Struct payload = 3;
   string step_id = 4;
+  map<string, string> headers = 5;
+  string callback_address = 6;
 }
 
 message ExecuteTaskResponse {
