@@ -201,7 +201,7 @@ public class NatsTraceSubscriber : BackgroundService
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Fatal error in NATS Trace Subscriber.");
-            Environment.Exit(1);
+            throw;
         }
     }
 }
