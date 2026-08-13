@@ -138,6 +138,13 @@ public class NatsTraceSubscriber : BackgroundService
         {
             var js = new NatsJSContext(_natsConnection);
             
+            await js.CreateStreamAsync(new StreamConfig
+            {
+                Name = streamName,
+                Subjects = new[] { filterSubject }
+            }, cancellationToken: stoppingToken);
+            _logger.LogInformation("Idempotently provisioned NATS stream {StreamName}.", streamName);
+            
             var consumer = await js.CreateOrUpdateConsumerAsync(streamName, new ConsumerConfig
             {
                 Name = consumerName,
@@ -194,7 +201,7 @@ public class NatsTraceSubscriber : BackgroundService
         catch (Exception ex)
         {
             _logger.LogCritical(ex, "Fatal error in NATS Trace Subscriber.");
-            throw;
+            Environment.Exit(1);
         }
     }
 }

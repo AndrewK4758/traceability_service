@@ -25,14 +25,11 @@ namespace TraceabilityService.Data.Migrations
 
             modelBuilder.Entity("TraceabilityService.Models.JobStateEntity", b =>
                 {
-                    b.Property<string>("TenantId")
-                        .HasColumnType("text");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                    b.Property<string>("AppId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("JobId")
-                        .HasColumnType("text");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<byte[]>("OriginalRequestBytes")
                         .IsRequired()
@@ -42,7 +39,7 @@ namespace TraceabilityService.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("TenantId", "AppId", "JobId");
+                    b.HasKey("Id");
 
                     b.HasIndex("Status");
 
@@ -59,10 +56,6 @@ namespace TraceabilityService.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<string>("AppId")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<string>("ChunkId")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
@@ -78,11 +71,6 @@ namespace TraceabilityService.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("JobId")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<string>("Message")
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
@@ -95,10 +83,6 @@ namespace TraceabilityService.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<string>("TenantId")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
@@ -108,13 +92,90 @@ namespace TraceabilityService.Data.Migrations
 
                     b.HasKey("EventId");
 
+                    b.HasIndex("CorrelationId");
+
                     b.HasIndex("Timestamp");
 
-                    b.HasIndex("TenantId", "AppId", "CorrelationId");
-
-                    b.HasIndex("TenantId", "AppId", "JobId");
-
                     b.ToTable("TraceEvents", "traceability");
+                });
+
+            modelBuilder.Entity("TraceabilityService.Models.JobStateEntity", b =>
+                {
+                    b.OwnsOne("TraceabilityService.Models.InfrastructureIdentity", "Identity", b1 =>
+                        {
+                            b1.Property<int>("JobStateEntityId")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("AppId")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)")
+                                .HasColumnName("AppId");
+
+                            b1.Property<string>("JobId")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)")
+                                .HasColumnName("JobId");
+
+                            b1.Property<string>("TenantId")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)")
+                                .HasColumnName("TenantId");
+
+                            b1.HasKey("JobStateEntityId");
+
+                            b1.HasIndex("TenantId", "AppId", "JobId")
+                                .IsUnique();
+
+                            b1.ToTable("JobStates", "traceability");
+
+                            b1.WithOwner()
+                                .HasForeignKey("JobStateEntityId");
+                        });
+
+                    b.Navigation("Identity")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TraceabilityService.Models.TraceEventRecord", b =>
+                {
+                    b.OwnsOne("TraceabilityService.Models.InfrastructureIdentity", "Identity", b1 =>
+                        {
+                            b1.Property<string>("TraceEventRecordEventId")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("AppId")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)")
+                                .HasColumnName("AppId");
+
+                            b1.Property<string>("JobId")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)")
+                                .HasColumnName("JobId");
+
+                            b1.Property<string>("TenantId")
+                                .IsRequired()
+                                .HasMaxLength(128)
+                                .HasColumnType("character varying(128)")
+                                .HasColumnName("TenantId");
+
+                            b1.HasKey("TraceEventRecordEventId");
+
+                            b1.HasIndex("TenantId", "AppId", "JobId");
+
+                            b1.ToTable("TraceEvents", "traceability");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TraceEventRecordEventId");
+                        });
+
+                    b.Navigation("Identity")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
