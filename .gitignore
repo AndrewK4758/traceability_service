@@ -12,3 +12,8 @@ data/
 bin/
 bin
 /coverage/report.dcvr
+obj/
+obj
+cmake-build-*/
+out/
+.vs/
