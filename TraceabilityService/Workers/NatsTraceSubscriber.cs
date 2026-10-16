@@ -179,11 +179,11 @@ public class NatsTraceSubscriber : BackgroundService
                     dbContext.TraceEvents.Add(eventRecord);
                     await dbContext.SaveChangesAsync(stoppingToken);
 
-                    // Acknowledge the message upon successful processing
                     await msg.AckAsync(cancellationToken: stoppingToken);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == PostgresErrorCodes.UniqueViolation)
                 {
+                    // JetStream uses at-least-once delivery; ack duplicate events so they are not redelivered.
                     _logger.LogWarning(ex, "Duplicate trace event detected (Unique constraint violation). Acking message.");
                     await msg.AckAsync(cancellationToken: stoppingToken);
                 }

@@ -21,14 +21,14 @@ public class AdversarialM1Tests
     }
 
     [Theory]
-    [InlineData("""{"job_id": "j1", "job_action": "ACT", "status": "OK"}""", "event_id")] // Missing event_id
-    [InlineData("""{"event_id": "", "job_id": "j1", "job_action": "ACT", "status": "OK"}""", "event_id")] // Empty event_id
-    [InlineData("""{"event_id": "   ", "job_id": "j1", "job_action": "ACT", "status": "OK"}""", "event_id")] // Whitespace event_id
-    [InlineData("""{"event_id": "e1", "job_action": "ACT", "status": "OK"}""", "job_id")] // Missing job_id
-    [InlineData("""{"event_id": "e1", "job_id": "", "job_action": "ACT", "status": "OK"}""", "job_id")] // Empty job_id
-    [InlineData("""{"event_id": "e1", "job_id": "j1", "status": "OK"}""", "action")] // Missing action/job_action/event_type
-    [InlineData("""{"event_id": "e1", "job_id": "j1", "event_type": "NO_DOT", "status": "OK"}""", "action")] // event_type without dot & no action
-    [InlineData("""{"event_id": "e1", "job_id": "j1", "job_action": "ACT"}""", "status")] // Missing status/event_type
+    [InlineData("""{"job_id": "j1", "job_action": "ACT", "status": "OK"}""", "event_id")]
+    [InlineData("""{"event_id": "", "job_id": "j1", "job_action": "ACT", "status": "OK"}""", "event_id")]
+    [InlineData("""{"event_id": "   ", "job_id": "j1", "job_action": "ACT", "status": "OK"}""", "event_id")]
+    [InlineData("""{"event_id": "e1", "job_action": "ACT", "status": "OK"}""", "job_id")]
+    [InlineData("""{"event_id": "e1", "job_id": "", "job_action": "ACT", "status": "OK"}""", "job_id")]
+    [InlineData("""{"event_id": "e1", "job_id": "j1", "status": "OK"}""", "action")]
+    [InlineData("""{"event_id": "e1", "job_id": "j1", "event_type": "NO_DOT", "status": "OK"}""", "action")]
+    [InlineData("""{"event_id": "e1", "job_id": "j1", "job_action": "ACT"}""", "status")]
     public void ParseTraceEventJson_IncompleteOrMalformed_ThrowsInvalidOperationException(string jsonPayload, string expectedMissingDetail)
     {
         var ex = Assert.Throws<InvalidOperationException>(() =>
@@ -113,12 +113,9 @@ public class AdversarialM1Tests
 
         Assert.Single(response.Events);
         var ev = response.Events[0];
-        
-        // Assert TenantId & AppId strongly-typed mapping
+
         Assert.Equal("TENANT_ALPHA", ev.TenantId);
         Assert.Equal("APP_BETA", ev.AppId);
-        
-        // Assert StepId is strictly empty string and NEVER defaulted to AppId
         Assert.Equal(string.Empty, ev.StepId);
         Assert.NotEqual(ev.AppId, ev.StepId);
     }

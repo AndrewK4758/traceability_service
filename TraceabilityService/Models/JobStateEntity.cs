@@ -10,7 +10,7 @@ public class JobStateEntity
 
     public required InfrastructureIdentity Identity { get; set; }
 
-    // We store the serialized protobuf byte array directly
+    // Serialized ExecuteTaskRequest protobuf payload used to resume pending jobs.
     public byte[] OriginalRequestBytes { get; set; } = Array.Empty<byte>();
 
     public JobStatus Status { get; set; } = JobStatus.PENDING;
